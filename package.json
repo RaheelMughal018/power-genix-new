@@ -6,6 +6,9 @@
     "web-app",
     "backend"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev:web-app": "npm run dev --workspace=web-app",
     "build:web-app": "npm run build --workspace=web-app",
