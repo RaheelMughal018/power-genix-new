@@ -1,0 +1,115 @@
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
+
+  &--cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  &--cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  &--cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 1024px) {
+    &--cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    &--cols-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    &--cols-2,
+    &--cols-3,
+    &--cols-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+
+  &--clickable {
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--color-border-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary-500);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.card__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.card__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.card__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+
+  &--positive {
+    color: var(--color-success);
+  }
+
+  &--negative {
+    color: var(--color-error);
+  }
+}
+
+.card__trendArrow {
+  font-size: 0.75rem;
+}

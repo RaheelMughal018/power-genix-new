@@ -1,0 +1,195 @@
+// Shared styles for DateSelector and DateRangeSelector
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  width: 100%;
+}
+
+.rangeWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+
+  &--required::after {
+    content: ' *';
+    color: var(--color-error);
+  }
+}
+
+// Preset pill buttons
+.presets {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.preset {
+  padding: 4px var(--spacing-sm);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background-color: var(--color-primary-600);
+    border-color: var(--color-primary-600);
+    color: #fff;
+
+    &:hover {
+      background-color: var(--color-primary-700);
+      border-color: var(--color-primary-700);
+      color: #fff;
+    }
+  }
+}
+
+// Date input
+.input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &--error {
+    border-color: var(--color-error);
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-error);
+}
+
+// DateRangeSelector toolbar row
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.clear-btn {
+  padding: 4px var(--spacing-sm);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+
+  &:hover {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+  }
+}
+
+// Custom date range inputs
+.customRange {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  flex-wrap: wrap;
+
+  > * {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+
+    > * {
+      width: 100%;
+    }
+  }
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.date-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+// Dark mode
+:global(.dark) {
+  .preset {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+
+    &:hover {
+      background-color: var(--color-gray-700);
+    }
+
+    &--active {
+      background-color: var(--color-primary-600);
+      border-color: var(--color-primary-600);
+
+      &:hover {
+        background-color: var(--color-primary-700);
+        border-color: var(--color-primary-700);
+      }
+    }
+  }
+
+  .input {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+    color: var(--color-text-primary);
+    color-scheme: dark;
+  }
+
+  .clear-btn {
+    border-color: var(--color-gray-700);
+
+    &:hover {
+      background-color: var(--color-gray-700);
+    }
+  }
+}

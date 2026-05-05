@@ -1,0 +1,143 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+  min-width: 200px;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.search {
+  width: 100%;
+  max-width: 320px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+
+  :global(.dark) & {
+    border-color: var(--color-gray-700);
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.th {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  user-select: none;
+
+  :global(.dark) & {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+  }
+
+  &--sortable {
+    cursor: pointer;
+
+    &:hover {
+      color: var(--color-text-primary);
+    }
+  }
+
+  &--active {
+    color: var(--color-primary-600);
+  }
+}
+
+.sortIcon {
+  font-size: 0.75rem;
+}
+
+.tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+  }
+
+  :global(.dark) & {
+    border-color: var(--color-gray-700);
+
+    &:hover {
+      background-color: var(--color-gray-800);
+    }
+  }
+}
+
+.td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.paginationInfo {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search {
+    max-width: 100%;
+  }
+
+  .toolbarRight {
+    justify-content: flex-end;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+  }
+}

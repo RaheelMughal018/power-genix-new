@@ -1,0 +1,326 @@
+import { toCsvBuffer } from '@/common/helpers/csv.helper';
+import { handleError } from '@/common/error-handlers/error.handler';
+import { generateInvoiceNumber } from '@/common/helpers/invoice-number.helper';
+import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
+import { Item } from '@/items/entities/item.entity';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
+import { CreateRepairInvoiceDto } from '../dtos/create-repair-invoice.dto';
+import { RepairInvoiceQueryDto } from '../dtos/repair-invoice-query.dto';
+import { UpdateRepairInvoiceDto } from '../dtos/update-repair-invoice.dto';
+import { RepairInvoiceItem } from '../entities/repair-invoice-item.entity';
+import { RepairInvoice } from '../entities/repair-invoice.entity';
+
+@Injectable()
+export class RepairInvoicesService {
+  constructor(
+    @InjectRepository(RepairInvoice)
+    private readonly invoiceRepository: Repository<RepairInvoice>,
+    private readonly dataSource: DataSource,
+  ) {}
+
+  async findAll(query: RepairInvoiceQueryDto) {
+    try {
+      const limit = query.limit || 10;
+      const page = query.page || 1;
+      const skip = (page - 1) * limit;
+
+      const qb = this.invoiceRepository
+        .createQueryBuilder('ri')
+        .leftJoinAndSelect('ri.customer', 'customer')
+        .leftJoinAndSelect('ri.createdBy', 'createdBy')
+        .orderBy('ri.date', 'DESC')
+        .addOrderBy('ri.id', 'DESC');
+
+      if (query.customerId) {
+        qb.andWhere('ri.customerId = :customerId', { customerId: query.customerId });
+      }
+
+      if (query.fromDate) {
+        qb.andWhere('ri.date >= :fromDate', { fromDate: query.fromDate });
+      }
+
+      if (query.toDate) {
+        qb.andWhere('ri.date <= :toDate', { toDate: query.toDate });
+      }
+
+      if (query.isCharged !== undefined) {
+        qb.andWhere('ri.isCharged = :isCharged', { isCharged: query.isCharged });
+      }
+
+      const [data, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
+
+      return {
+        data,
+        meta: {
+          itemsPerPage: limit,
+          totalItems,
+          currentPage: page,
+          totalPages: Math.ceil(totalItems / limit),
+        },
+      };
+    } catch (error) {
+      handleError(error);
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const invoice = await this.invoiceRepository.findOne({
+        where: { id },
+        relations: ['customer', 'createdBy', 'items', 'items.item'],
+      });
+
+      if (!invoice) {
+        throw new NotFoundException(`Repair invoice #${id} not found`);
+      }
+
+      return invoice;
+    } catch (error) {
+      handleError(error);
+    }
+  }
+
+  async create(dto: CreateRepairInvoiceDto, activeUser: ActiveUserData) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const invoiceNumber = await generateInvoiceNumber('RI', this.invoiceRepository);
+
+      const laborCost = dto.isCharged ? (dto.laborCost ?? 0) : 0;
+
+      let partsTotal = 0;
+
+      const invoice = queryRunner.manager.create(RepairInvoice, {
+        invoiceNumber,
+        customerId: dto.customerId,
+        serialNumber: dto.serialNumber ?? null,
+        description: dto.description,
+        date: dto.date,
+        laborCost,
+        isCharged: dto.isCharged,
+        totalAmount: 0,
+        createdById: activeUser.id,
+      });
+
+      const savedInvoice = await queryRunner.manager.save(RepairInvoice, invoice);
+
+      for (const lineDto of dto.items) {
+        let unitPrice: number;
+        let itemId: number | null = null;
+        let customItemName: string | null = null;
+
+        if (lineDto.customItemName) {
+          unitPrice = lineDto.customUnitPrice ?? 0;
+          customItemName = lineDto.customItemName;
+        } else {
+          const item = await queryRunner.manager.findOne(Item, { where: { id: lineDto.itemId } });
+          if (!item) throw new NotFoundException(`Item #${lineDto.itemId} not found`);
+          unitPrice = Number(item.averagePrice);
+          itemId = item.id;
+
+          if (lineDto.isReal) {
+            if (Number(item.totalQuantity) < lineDto.quantity) {
+              throw new BadRequestException(
+                `Insufficient stock for "${item.name}": available ${item.totalQuantity}, requested ${lineDto.quantity}`,
+              );
+            }
+            await queryRunner.manager.update(Item, { id: itemId }, {
+              totalQuantity: Number(item.totalQuantity) - lineDto.quantity,
+            });
+          }
+        }
+
+        partsTotal += lineDto.quantity * unitPrice;
+
+        const lineItem = queryRunner.manager.create(RepairInvoiceItem, {
+          invoiceId: savedInvoice.id,
+          itemId,
+          customItemName,
+          quantity: lineDto.quantity,
+          unitPrice,
+          isReal: lineDto.customItemName ? false : lineDto.isReal,
+        });
+
+        await queryRunner.manager.save(RepairInvoiceItem, lineItem);
+      }
+
+      const totalAmount = partsTotal + laborCost;
+
+      await queryRunner.manager.update(RepairInvoice, { id: savedInvoice.id }, { totalAmount });
+
+      await queryRunner.commitTransaction();
+
+      return { ...savedInvoice, totalAmount };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      handleError(error);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async update(id: number, dto: UpdateRepairInvoiceDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const invoice = await queryRunner.manager.findOne(RepairInvoice, {
+        where: { id },
+        relations: ['items'],
+      });
+
+      if (!invoice) {
+        throw new NotFoundException(`Repair invoice #${id} not found`);
+      }
+
+      // Reverse old stock changes (only isReal stock items had stock deducted)
+      for (const oldLine of invoice.items) {
+        if (oldLine.isReal && oldLine.itemId) {
+          const item = await queryRunner.manager.findOne(Item, { where: { id: oldLine.itemId } });
+          if (item) {
+            await queryRunner.manager.update(Item, { id: oldLine.itemId }, {
+              totalQuantity: Number(item.totalQuantity) + Number(oldLine.quantity),
+            });
+          }
+        }
+      }
+
+      // Delete old line items
+      await queryRunner.manager.delete(RepairInvoiceItem, { invoiceId: id });
+
+      // Apply new line items
+      const laborCost = dto.isCharged ? (dto.laborCost ?? 0) : 0;
+      let partsTotal = 0;
+
+      for (const lineDto of dto.items) {
+        let unitPrice: number;
+        let itemId: number | null = null;
+        let customItemName: string | null = null;
+
+        if (lineDto.customItemName) {
+          unitPrice = lineDto.customUnitPrice ?? 0;
+          customItemName = lineDto.customItemName;
+        } else {
+          const item = await queryRunner.manager.findOne(Item, { where: { id: lineDto.itemId } });
+          if (!item) throw new NotFoundException(`Item #${lineDto.itemId} not found`);
+          unitPrice = Number(item.averagePrice);
+          itemId = item.id;
+
+          if (lineDto.isReal) {
+            if (Number(item.totalQuantity) < lineDto.quantity) {
+              throw new BadRequestException(
+                `Insufficient stock for "${item.name}": available ${item.totalQuantity}, requested ${lineDto.quantity}`,
+              );
+            }
+            await queryRunner.manager.update(Item, { id: itemId }, {
+              totalQuantity: Number(item.totalQuantity) - lineDto.quantity,
+            });
+          }
+        }
+
+        partsTotal += lineDto.quantity * unitPrice;
+
+        const lineItem = queryRunner.manager.create(RepairInvoiceItem, {
+          invoiceId: id,
+          itemId,
+          customItemName,
+          quantity: lineDto.quantity,
+          unitPrice,
+          isReal: lineDto.customItemName ? false : lineDto.isReal,
+        });
+
+        await queryRunner.manager.save(RepairInvoiceItem, lineItem);
+      }
+
+      const totalAmount = partsTotal + laborCost;
+
+      await queryRunner.manager.update(RepairInvoice, { id }, {
+        customerId: dto.customerId,
+        serialNumber: dto.serialNumber ?? null,
+        description: dto.description,
+        date: dto.date,
+        laborCost,
+        isCharged: dto.isCharged,
+        totalAmount,
+      });
+
+      await queryRunner.commitTransaction();
+
+      return queryRunner.manager.findOne(RepairInvoice, {
+        where: { id },
+        relations: ['customer', 'createdBy', 'items', 'items.item'],
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      handleError(error);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getTotalRepairAmount(): Promise<number> {
+    try {
+      const result = await this.invoiceRepository
+        .createQueryBuilder('ri')
+        .where('ri.isCharged = true')
+        .andWhere('ri.deletedAt IS NULL')
+        .select('COALESCE(SUM(CAST(ri.totalAmount AS numeric)), 0)', 'total')
+        .getRawOne<{ total: string }>();
+
+      return Number(result?.total ?? 0);
+    } catch (error) {
+      handleError(error);
+      throw error;
+    }
+  }
+
+  async getTotalRepairAmountForCustomer(customerId: number): Promise<number> {
+    try {
+      const result = await this.invoiceRepository
+        .createQueryBuilder('ri')
+        .where('ri.customerId = :customerId', { customerId })
+        .andWhere('ri.isCharged = true')
+        .andWhere('ri.deletedAt IS NULL')
+        .select('COALESCE(SUM(CAST(ri.totalAmount AS numeric)), 0)', 'total')
+        .getRawOne<{ total: string }>();
+
+      return Number(result?.total ?? 0);
+    } catch (error) {
+      handleError(error);
+      throw error;
+    }
+  }
+
+  async exportCsv(): Promise<string> {
+    try {
+      const invoices = await this.invoiceRepository.find({
+        relations: ['customer', 'createdBy'],
+        order: { date: 'DESC' },
+      });
+
+      return toCsvBuffer(
+        ['Invoice #', 'Date', 'Customer', 'Total Amount', 'Labor Cost', 'Charged', 'Notes'],
+        invoices.map((inv) => ({
+          'Invoice #': inv.invoiceNumber,
+          'Date': inv.date,
+          'Customer': inv.customer?.name ?? '',
+          'Total Amount': inv.totalAmount,
+          'Labor Cost': inv.laborCost,
+          'Charged': inv.isCharged ? 'Yes' : 'No',
+          'Notes': inv.description ?? '',
+        })),
+      );
+    } catch (error) {
+      handleError(error);
+      throw error;
+    }
+  }
+}

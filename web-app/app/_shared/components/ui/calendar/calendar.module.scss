@@ -1,0 +1,134 @@
+.calendar {
+  width: 280px;
+  max-width: 100%;
+  padding: 12px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  @media (max-width: 640px) {
+    width: 100%;
+    max-width: 320px;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+  }
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+
+.weekday {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 4px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--color-bg-secondary);
+  }
+
+  &--selected {
+    background: var(--color-primary-600) !important;
+    color: #fff !important;
+    font-weight: 600;
+  }
+
+  &--today {
+    border: 1.5px solid var(--color-primary-400);
+    color: var(--color-primary-600);
+    font-weight: 600;
+  }
+
+  &--disabled {
+    color: var(--color-text-tertiary);
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+:global(.dark) {
+  .calendar {
+    background: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .day {
+    &:hover:not(:disabled) {
+      background: var(--color-gray-700);
+    }
+
+    &--today {
+      border-color: var(--color-primary-400);
+      color: var(--color-primary-400);
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "cliVersion": "0.1.6",
+  "createdAt": "2026-05-03T12:30:18.332Z",
+  "projectName": "power-genix",
+  "modules": {
+    "webApp": {
+      "template": "next",
+      "folder": "web-app"
+    },
+    "backend": {
+      "template": "nest",
+      "folder": "backend"
+    }
+  }
+}

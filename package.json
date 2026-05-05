@@ -1,0 +1,17 @@
+{
+  "name": "power-genix",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web-app",
+    "backend"
+  ],
+  "scripts": {
+    "dev:web-app": "npm run dev --workspace=web-app",
+    "build:web-app": "npm run build --workspace=web-app",
+    "test:web-app": "npm run test --workspace=web-app",
+    "dev:backend": "npm run start:dev --workspace=backend",
+    "build:backend": "npm run build --workspace=backend",
+    "test:backend": "npm run test --workspace=backend"
+  }
+}

@@ -1,0 +1,265 @@
+.invoiceForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+// ─── Table wrapper ────────────────────────────────────────────────────────────
+
+.tableWrapper {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: var(--invoice-grid-cols, 3fr 1fr 1.5fr 1.5fr auto);
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+// ─── Body / Rows ─────────────────────────────────────────────────────────────
+
+.tableBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: var(--invoice-grid-cols, 3fr 1fr 1.5fr 1.5fr auto);
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  gap: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: var(--color-bg-secondary);
+  }
+}
+
+// ─── Column definitions ───────────────────────────────────────────────────────
+
+.colItem,
+.colQty,
+.colPrice,
+.colSerial,
+.colIsReal,
+.colTotal,
+.colActions {
+  display: flex;
+  align-items: center;
+}
+
+.colIsReal,
+.isRealCell {
+  justify-content: center;
+}
+
+.colActions {
+  justify-content: flex-end;
+}
+
+// ─── Inputs ───────────────────────────────────────────────────────────────────
+
+.select,
+.numberInput {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+
+  &:focus {
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-500) 20%, transparent);
+  }
+}
+
+.numberInput {
+  text-align: right;
+}
+
+.discountInput {
+  max-width: 140px;
+  text-align: right;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-primary-600);
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+// ─── Read-only display ────────────────────────────────────────────────────────
+
+.readOnlyValue {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.totalValue {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: right;
+  width: 100%;
+}
+
+// ─── Remove button ────────────────────────────────────────────────────────────
+
+.removeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--color-error) 12%, transparent);
+    color: var(--color-error);
+  }
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+.emptyState {
+  padding: var(--spacing-lg);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+// ─── Add row ──────────────────────────────────────────────────────────────────
+
+.addRowWrapper {
+  display: flex;
+  align-items: center;
+}
+
+// ─── Totals ───────────────────────────────────────────────────────────────────
+
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  align-items: flex-end;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.totalsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  min-width: 280px;
+}
+
+.totalsLabel {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.totalsValue {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  min-width: 120px;
+  text-align: right;
+}
+
+.grandTotalRow {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.grandTotalValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary-600);
+}
+
+// ─── Responsive — mobile card layout ─────────────────────────────────────────
+
+@media (max-width: 640px) {
+  .tableHeader {
+    display: none;
+  }
+
+  .tableRow {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin: var(--spacing-sm) var(--spacing-sm) 0;
+
+    &:last-child {
+      border-bottom: 1px solid var(--color-border);
+    }
+  }
+
+  .tableWrapper {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .tableBody {
+    gap: 0;
+  }
+
+  .colItem,
+  .colQty,
+  .colPrice,
+  .colSerial,
+  .colIsReal,
+  .colTotal {
+    width: 100%;
+  }
+
+  .colActions {
+    justify-content: flex-start;
+  }
+
+  .totalsRow {
+    min-width: unset;
+    width: 100%;
+  }
+}
