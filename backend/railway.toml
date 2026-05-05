@@ -1,10 +1,6 @@
 [build]
 builder = "nixpacks"
 buildCommand = "npm install && npm run build"
-nixpacksVersion = "1.29.1"
-
-[build.nixpacks]
-nodeVersion = "20"
 
 [deploy]
 startCommand = "node dist/main.js"
