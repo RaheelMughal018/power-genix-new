@@ -11,6 +11,7 @@ import { DateRangeSelector } from '@/app/_shared/components/ui/dateSelector/date
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { downloadCsv } from '@/app/_shared/lib/utils/download';
 
 interface Expense extends Record<string, unknown> {
@@ -149,7 +150,7 @@ export default function ExpensesPage() {
   };
 
   const columns: Column<Expense>[] = [
-    { key: 'date', label: 'Date', render: (row) => new Date(row.date).toLocaleDateString() },
+    { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'description', label: 'Description' },
     { key: 'category', label: 'Category', render: (row) => row.category?.name || '—' },
     { key: 'account', label: 'Account', render: (row) => row.account?.name || '—' },

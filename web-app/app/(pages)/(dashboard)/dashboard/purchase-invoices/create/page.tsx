@@ -7,6 +7,7 @@ import { Spinner } from '@/app/_shared/components/ui/spinner/spinner';
 import { useToast } from '@/app/_shared/components/ui/toast/toast';
 import { InvoiceForm, type InvoiceLineItem, type ItemOption } from '@/app/_shared/components/forms/invoiceForm/invoiceForm';
 import { purchaseInvoicesApi, suppliersApi, itemsApi } from '@/app/_shared/lib/api/client';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
 import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
@@ -27,7 +28,7 @@ export default function CreatePurchaseInvoicePage() {
   const [itemOptions, setItemOptions] = useState<ItemOption[]>([]);
 
   const [supplierId, setSupplierId] = useState<number>(0);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(toLocalISO(new Date()));
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([emptyRow()]);
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState('');

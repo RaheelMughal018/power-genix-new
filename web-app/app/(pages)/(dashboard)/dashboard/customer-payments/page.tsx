@@ -6,6 +6,7 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { DateRangeSelector } from '@/app/_shared/components/ui/dateSelector/dateRangeSelector';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
 import { useCustomerPayments, type CustomerPayment } from './useCustomerPayments';
 
@@ -21,7 +22,7 @@ export default function CustomerPaymentsPage() {
   const columns: Column<CustomerPayment>[] = [
     { key: 'invoiceNumber', label: 'Invoice #', render: (row) => row.invoiceNumber || `CP-${row.id}` },
     { key: 'customer', label: 'Customer', render: (row) => row.customer?.name || '-' },
-    { key: 'date', label: 'Date', render: (row) => new Date(row.date).toLocaleDateString() },
+    { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'amount', label: 'Amount', render: (row) => formatPKR(row.amount) },
     { key: 'account', label: 'Account', render: (row) => row.account?.name || '-' },
     {

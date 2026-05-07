@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { toLocalISO, parseLocalDate } from '@/app/_shared/lib/utils/date';
 import styles from './calendar.module.scss';
 
 interface CalendarProps {
@@ -16,8 +17,6 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-const toISO = (d: Date) => d.toISOString().split('T')[0];
-
 const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
 
 const getStartDay = (year: number, month: number) => {
@@ -26,7 +25,7 @@ const getStartDay = (year: number, month: number) => {
 };
 
 export const Calendar = ({ value, onChange, min, max }: CalendarProps) => {
-  const parsed = value ? new Date(value) : new Date();
+  const parsed = value ? parseLocalDate(value) : new Date();
   const [viewYear, setViewYear] = useState(parsed.getFullYear());
   const [viewMonth, setViewMonth] = useState(parsed.getMonth());
 
@@ -42,7 +41,7 @@ export const Calendar = ({ value, onChange, min, max }: CalendarProps) => {
   }, [viewYear, viewMonth]);
 
   const isDisabled = (day: number) => {
-    const iso = toISO(new Date(viewYear, viewMonth, day));
+    const iso = toLocalISO(new Date(viewYear, viewMonth, day));
     if (min && iso < min) return true;
     if (max && iso > max) return true;
     return false;
@@ -50,19 +49,19 @@ export const Calendar = ({ value, onChange, min, max }: CalendarProps) => {
 
   const isSelected = (day: number) => {
     if (!value) return false;
-    const iso = toISO(new Date(viewYear, viewMonth, day));
+    const iso = toLocalISO(new Date(viewYear, viewMonth, day));
     return iso === value;
   };
 
   const isToday = (day: number) => {
-    const today = toISO(new Date());
-    const iso = toISO(new Date(viewYear, viewMonth, day));
+    const today = toLocalISO(new Date());
+    const iso = toLocalISO(new Date(viewYear, viewMonth, day));
     return iso === today;
   };
 
   const handleSelect = (day: number) => {
     if (isDisabled(day)) return;
-    const iso = toISO(new Date(viewYear, viewMonth, day));
+    const iso = toLocalISO(new Date(viewYear, viewMonth, day));
     onChange(iso);
   };
 

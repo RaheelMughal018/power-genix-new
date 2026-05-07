@@ -231,6 +231,15 @@ export class RecipesService {
         throw new NotFoundException(`Recipe #${id} not found`);
       }
 
+      const hasProduction = await this.dataSource.query(
+        `SELECT EXISTS(SELECT 1 FROM production_batch WHERE "recipeId" = $1 AND "deletedAt" IS NULL) AS "exists"`,
+        [id],
+      );
+
+      if (hasProduction[0]?.exists) {
+        throw new BadRequestException('Cannot delete recipe with existing production batches');
+      }
+
       await this.recipesRepository.softDelete(id);
 
       return { message: 'Recipe deleted successfully' };

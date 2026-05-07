@@ -2,9 +2,9 @@ import { handleError } from '@/common/error-handlers/error.handler';
 import { PaginationProvider } from '@/common/pagination/providers/pagination.provider';
 import { PaginationQueryDto } from '@/common/pagination/dtos/pagination-query.dto';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ExpenseCategory } from '../entities/expense-category.entity';
 import { CreateExpenseCategoryDto } from '../dtos/create-expense-category.dto';
 import { UpdateExpenseCategoryDto } from '../dtos/update-expense-category.dto';
@@ -15,6 +15,7 @@ export class ExpenseCategoriesService {
     @InjectRepository(ExpenseCategory)
     private readonly repo: Repository<ExpenseCategory>,
     private readonly paginationProvider: PaginationProvider,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findAll(paginationQuery: PaginationQueryDto) {
@@ -111,6 +112,15 @@ export class ExpenseCategoriesService {
 
       if (!category) {
         throw new NotFoundException(`Expense category #${id} not found`);
+      }
+
+      const hasExpenses = await this.dataSource.query(
+        `SELECT EXISTS(SELECT 1 FROM expense WHERE "categoryId" = $1 AND "deletedAt" IS NULL) AS "exists"`,
+        [id],
+      );
+
+      if (hasExpenses[0]?.exists) {
+        throw new BadRequestException('Cannot delete category with existing expenses');
       }
 
       await this.repo.softDelete(id);

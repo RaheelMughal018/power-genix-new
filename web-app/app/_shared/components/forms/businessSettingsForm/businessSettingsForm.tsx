@@ -111,13 +111,13 @@ export const BusinessSettingsForm = ({ initialValues, onSuccess }: BusinessSetti
       <div className="space-y-2">
         <label className="text-sm font-medium text-(--color-text-primary)">Company Logo</label>
         {logoPreview && (
-          <div className="mb-2">
+          <div className="mb-2 flex justify-center">
             <Image
               src={logoPreview}
               alt="Company Logo"
               width={120}
-              height={60}
-              className="rounded border border-(--color-border)"
+              height={120}
+              className="rounded border border-(--color-border) object-contain"
               unoptimized
             />
           </div>

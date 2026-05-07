@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { DatePicker } from '@/app/_shared/components/ui/datePicker/datePicker';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import styles from './dateSelector.module.scss';
 
 interface DateSelectorProps {
@@ -12,8 +13,6 @@ interface DateSelectorProps {
   required?: boolean;
   className?: string;
 }
-
-const toISO = (d: Date) => d.toISOString().split('T')[0];
 
 type Preset = 'today' | 'thisMonth' | 'thisYear' | 'custom';
 
@@ -26,9 +25,9 @@ const PRESETS: { key: Preset; label: string }[] = [
 
 const getPresetDate = (preset: Exclude<Preset, 'custom'>): string => {
   const now = new Date();
-  if (preset === 'today') return toISO(now);
-  if (preset === 'thisMonth') return toISO(new Date(now.getFullYear(), now.getMonth(), 1));
-  return toISO(new Date(now.getFullYear(), 0, 1));
+  if (preset === 'today') return toLocalISO(now);
+  if (preset === 'thisMonth') return toLocalISO(new Date(now.getFullYear(), now.getMonth(), 1));
+  return toLocalISO(new Date(now.getFullYear(), 0, 1));
 };
 
 export const DateSelector = ({
@@ -42,9 +41,9 @@ export const DateSelector = ({
   const activePreset: Preset | null = (() => {
     if (!value) return null;
     const now = new Date();
-    if (value === toISO(now)) return 'today';
-    if (value === toISO(new Date(now.getFullYear(), now.getMonth(), 1))) return 'thisMonth';
-    if (value === toISO(new Date(now.getFullYear(), 0, 1))) return 'thisYear';
+    if (value === toLocalISO(now)) return 'today';
+    if (value === toLocalISO(new Date(now.getFullYear(), now.getMonth(), 1))) return 'thisMonth';
+    if (value === toLocalISO(new Date(now.getFullYear(), 0, 1))) return 'thisYear';
     return 'custom';
   })();
 

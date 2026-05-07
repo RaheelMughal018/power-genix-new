@@ -83,9 +83,11 @@ export default function SuppliersPage() {
           <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
             Edit
           </Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteClick(row)}>
-            Delete
-          </Button>
+          {(row as SupplierRow & { canDelete?: boolean }).canDelete && (
+            <Button size="sm" variant="danger" onClick={() => handleDeleteClick(row)}>
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },

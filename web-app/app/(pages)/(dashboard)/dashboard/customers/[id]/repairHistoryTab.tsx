@@ -6,6 +6,7 @@ import { DataTable, type Column } from '@/app/_shared/components/ui/dataTable/da
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
 import { repairInvoicesApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 
 interface RepairInvoice extends Record<string, unknown> {
@@ -60,7 +61,7 @@ export function RepairHistoryTab({ customerId }: Props) {
         </button>
       ),
     },
-    { key: 'date', label: 'Date', render: (row) => new Date(row.date).toLocaleDateString() },
+    { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'description', label: 'Description', render: (row) => String(row.description || '-') },
     { key: 'totalAmount', label: 'Amount', render: (row) => formatPKR(row.totalAmount ?? row.laborCost ?? 0) },
     { key: 'isCharged', label: 'Charged', render: (row) => row.isCharged ? 'Yes' : 'No' },

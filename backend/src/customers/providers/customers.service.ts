@@ -6,7 +6,7 @@ import { RepairInvoice } from '@/repair-invoices/entities/repair-invoice.entity'
 import { RepairInvoicesService } from '@/repair-invoices/providers/repair-invoices.service';
 import { SaleInvoice } from '@/sale-invoices/entities/sale-invoice.entity';
 import { SaleInvoicesService } from '@/sale-invoices/providers/sale-invoices.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from '../entities/customer.entity';
@@ -43,12 +43,20 @@ export class CustomersService {
           'customer_totalSales',
         )
         .addSelect(
-          `COALESCE((SELECT SUM(CAST(ri."totalAmount" AS numeric)) FROM repair_invoice ri WHERE ri."customerId" = customer.id AND ri."deletedAt" IS NULL), 0)`,
+          `COALESCE((SELECT SUM(CAST(ri."totalAmount" AS numeric)) FROM repair_invoice ri WHERE ri."customerId" = customer.id AND ri."isCharged" = true AND ri."deletedAt" IS NULL), 0)`,
           'customer_totalRepairs',
         )
         .addSelect(
           `COALESCE((SELECT SUM(CAST(cp."amount" AS numeric)) FROM customer_payment cp WHERE cp."customerId" = customer.id AND cp."deletedAt" IS NULL), 0)`,
           'customer_totalPayments',
+        )
+        .addSelect(
+          `CASE WHEN (
+            EXISTS(SELECT 1 FROM sale_invoice si WHERE si."customerId" = customer.id AND si."deletedAt" IS NULL)
+            OR EXISTS(SELECT 1 FROM repair_invoice ri WHERE ri."customerId" = customer.id AND ri."deletedAt" IS NULL)
+            OR EXISTS(SELECT 1 FROM customer_payment cp WHERE cp."customerId" = customer.id AND cp."deletedAt" IS NULL)
+          ) THEN false ELSE true END`,
+          'customer_canDelete',
         )
         .orderBy('customer.name', 'ASC');
 
@@ -68,6 +76,7 @@ export class CustomersService {
         totalRepairs: Number(raw[i]?.customer_totalRepairs ?? 0),
         totalPayments: Number(raw[i]?.customer_totalPayments ?? 0),
         due: Number(customer.openingBalance) + Number(raw[i]?.customer_totalSales ?? 0) + Number(raw[i]?.customer_totalRepairs ?? 0) - Number(raw[i]?.customer_totalPayments ?? 0),
+        canDelete: raw[i]?.customer_canDelete === true || raw[i]?.customer_canDelete === 'true',
       }));
 
       return {
@@ -184,6 +193,14 @@ export class CustomersService {
         throw new NotFoundException(`Customer #${id} not found`);
       }
 
+      const hasSales = await this.saleInvoiceRepository.count({ where: { customerId: id } });
+      const hasRepairs = await this.repairInvoiceRepository.count({ where: { customerId: id } });
+      const hasPayments = await this.customerPaymentRepository.count({ where: { customerId: id } });
+
+      if (hasSales || hasRepairs || hasPayments) {
+        throw new BadRequestException('Cannot delete customer with existing transactions');
+      }
+
       await this.customersRepository.softDelete(id);
 
       return { message: 'Customer deleted successfully' };
@@ -213,7 +230,7 @@ export class CustomersService {
 
       const repairQb = this.repairInvoiceRepository
         .createQueryBuilder('ri')
-        .where('ri.customerId = :id AND ri.deletedAt IS NULL AND ri.isCharged = true', { id })
+        .where('ri.customerId = :id AND ri.deletedAt IS NULL', { id })
         .orderBy('ri.date', 'ASC')
         .addOrderBy('ri.id', 'ASC');
 
@@ -242,13 +259,13 @@ export class CustomersService {
         balance: number;
       };
 
-      const entries: Array<{ date: string; sortId: number; type: 'sale' | 'repair' | 'payment'; row: Row }> = [];
+      const entries: Array<{ date: string; sortId: number; type: 'sale' | 'repair' | 'repair_foc' | 'payment'; row: Row }> = [];
 
       for (const s of sales) {
         entries.push({ date: s.date, sortId: s.id, type: 'sale', row: { date: s.date, invoiceNumber: s.invoiceNumber, saleAmount: Number(s.totalAmount), repairAmount: 0, amountReceived: 0, balance: 0 } });
       }
       for (const r of repairs) {
-        entries.push({ date: r.date, sortId: r.id, type: 'repair', row: { date: r.date, invoiceNumber: r.invoiceNumber, saleAmount: 0, repairAmount: Number(r.totalAmount), amountReceived: 0, balance: 0 } });
+        entries.push({ date: r.date, sortId: r.id, type: r.isCharged ? 'repair' : 'repair_foc', row: { date: r.date, invoiceNumber: r.invoiceNumber, saleAmount: 0, repairAmount: Number(r.totalAmount), amountReceived: 0, balance: 0 } });
       }
       for (const p of payments) {
         entries.push({ date: p.date, sortId: p.id, type: 'payment', row: { date: p.date, invoiceNumber: p.invoiceNumber, saleAmount: 0, repairAmount: 0, amountReceived: Number(p.amount), balance: 0 } });
@@ -263,10 +280,13 @@ export class CustomersService {
       let totalReceived = 0;
 
       const rows = entries.map((e) => {
-        balance += e.row.saleAmount + e.row.repairAmount - e.row.amountReceived;
-        totalSale += e.row.saleAmount;
-        totalRepair += e.row.repairAmount;
-        totalReceived += e.row.amountReceived;
+        const isFoc = e.type === 'repair_foc';
+        if (!isFoc) {
+          balance += e.row.saleAmount + e.row.repairAmount - e.row.amountReceived;
+          totalSale += e.row.saleAmount;
+          totalRepair += e.row.repairAmount;
+          totalReceived += e.row.amountReceived;
+        }
         return { ...e.row, balance, id: e.sortId, type: e.type };
       });
 

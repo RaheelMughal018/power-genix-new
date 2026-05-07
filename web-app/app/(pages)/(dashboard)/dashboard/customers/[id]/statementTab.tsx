@@ -7,12 +7,13 @@ import { DateRangePicker } from '@/app/_shared/components/ui/dateRangePicker/dat
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
 import { customersApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { downloadPdf } from '@/app/_shared/lib/utils/download';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 
 interface StatementRow {
   id: number;
-  type: 'sale' | 'repair' | 'payment';
+  type: 'sale' | 'repair' | 'repair_foc' | 'payment';
   date: string;
   invoiceNumber: string;
   saleAmount: number;
@@ -159,23 +160,28 @@ export function CustomerStatementTab({ customerId }: Props) {
               {rows.map((row, i) => (
                 <tr key={i} className="border-t border-(--color-border)">
                   <td className="px-4 py-3 text-(--color-text-primary)">
-                    {row.date ? new Date(row.date).toLocaleDateString() : '-'}
+                    {row.date ? formatDate(row.date) : '-'}
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      className="text-(--color-primary) hover:underline font-medium text-left cursor-pointer"
-                      onClick={() => {
-                        const route = row.type === 'sale'
-                          ? `${ROUTES.SALE_INVOICES}/${row.id}`
-                          : row.type === 'repair'
-                            ? `${ROUTES.REPAIR_INVOICES}/${row.id}`
-                            : `${ROUTES.CUSTOMER_PAYMENTS}/${row.id}`;
-                        router.push(route);
-                      }}
-                    >
-                      {row.invoiceNumber || '-'}
-                    </button>
+                    <span className="inline-flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="text-(--color-primary) hover:underline font-medium text-left cursor-pointer"
+                        onClick={() => {
+                          const route = row.type === 'sale'
+                            ? `${ROUTES.SALE_INVOICES}/${row.id}`
+                            : row.type === 'repair' || row.type === 'repair_foc'
+                              ? `${ROUTES.REPAIR_INVOICES}/${row.id}`
+                              : `${ROUTES.CUSTOMER_PAYMENTS}/${row.id}`;
+                          router.push(route);
+                        }}
+                      >
+                        {row.invoiceNumber || '-'}
+                      </button>
+                      {row.type === 'repair_foc' && (
+                        <span className="inline-block px-1.5 py-0.5 text-[10px] font-semibold uppercase rounded bg-(--color-warning-50) text-(--color-warning-600) border border-(--color-warning-500)">FOC</span>
+                      )}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.saleAmount ?? 0)}</td>
                   <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.repairAmount ?? 0)}</td>

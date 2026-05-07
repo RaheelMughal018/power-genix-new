@@ -40,7 +40,10 @@ export class SaleInvoicesService {
         .addOrderBy('si.id', 'DESC');
 
       if (query.search) {
-        qb.andWhere('si.invoiceNumber ILIKE :search', { search: `%${query.search}%` });
+        qb.andWhere(
+          '(si.invoiceNumber ILIKE :search OR customer.name ILIKE :search)',
+          { search: `%${query.search}%` },
+        );
       }
 
       if (query.customerId) {
@@ -260,17 +263,17 @@ export class SaleInvoicesService {
       });
 
       await queryRunner.commitTransaction();
+      await queryRunner.release();
 
-      return queryRunner.manager.findOne(SaleInvoice, {
+      return this.invoiceRepository.findOne({
         where: { id },
         relations: ['customer', 'createdBy', 'items', 'items.item'],
       });
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       handleError(error);
       throw error;
-    } finally {
-      await queryRunner.release();
     }
   }
 
@@ -347,14 +350,13 @@ export class SaleInvoicesService {
       });
 
       return toCsvBuffer(
-        ['Invoice #', 'Date', 'Customer', 'Total Amount', 'Discount', 'Grand Total', 'Notes'],
+        ['Invoice #', 'Date', 'Customer', 'Discount', 'Total Amount', 'Notes'],
         invoices.map((inv) => ({
           'Invoice #': inv.invoiceNumber,
           'Date': inv.date,
           'Customer': inv.customer?.name ?? '',
-          'Total Amount': inv.totalAmount,
-          'Discount': inv.discount,
-          'Grand Total': Number(inv.totalAmount) - Number(inv.discount),
+          'Discount': Number(inv.discount ?? 0),
+          'Total Amount': Number(inv.totalAmount),
           'Notes': inv.notes ?? '',
         })),
       );

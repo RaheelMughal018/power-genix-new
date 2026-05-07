@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { DatePicker } from '@/app/_shared/components/ui/datePicker/datePicker';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import styles from './dateRangePicker.module.scss';
 
 type Preset = 'today' | 'thisMonth' | 'thisYear' | 'custom';
@@ -12,22 +13,20 @@ interface DateRangePickerProps {
   className?: string;
 }
 
-const toISO = (d: Date) => d.toISOString().split('T')[0];
-
 const getPresetRange = (preset: Preset, fiscalYearStart: number): { from: string; to: string } | null => {
   if (preset === 'custom') return null;
 
   const now = new Date();
 
   if (preset === 'today') {
-    const iso = toISO(now);
+    const iso = toLocalISO(now);
     return { from: iso, to: iso };
   }
 
   if (preset === 'thisMonth') {
     const from = new Date(now.getFullYear(), now.getMonth(), 1);
     const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return { from: toISO(from), to: toISO(to) };
+    return { from: toLocalISO(from), to: toLocalISO(to) };
   }
 
   if (preset === 'thisYear') {
@@ -35,7 +34,7 @@ const getPresetRange = (preset: Preset, fiscalYearStart: number): { from: string
     const year = month >= fiscalYearStart ? now.getFullYear() : now.getFullYear() - 1;
     const from = new Date(year, fiscalYearStart - 1, 1);
     const to = new Date(year + 1, fiscalYearStart - 1, 0);
-    return { from: toISO(from), to: toISO(to) };
+    return { from: toLocalISO(from), to: toLocalISO(to) };
   }
 
   return null;

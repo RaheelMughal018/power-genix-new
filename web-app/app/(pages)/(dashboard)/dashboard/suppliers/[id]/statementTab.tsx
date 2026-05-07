@@ -7,6 +7,7 @@ import { DateRangePicker } from '@/app/_shared/components/ui/dateRangePicker/dat
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
 import { suppliersApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { downloadPdf } from '@/app/_shared/lib/utils/download';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 
@@ -152,7 +153,7 @@ export function StatementTab({ supplierId }: Props) {
               {rows.map((row, i) => (
                 <tr key={i} className="border-t border-(--color-border)">
                   <td className="px-4 py-3 text-(--color-text-primary)">
-                    {row.date ? new Date(row.date).toLocaleDateString() : '-'}
+                    {row.date ? formatDate(row.date) : '-'}
                   </td>
                   <td className="px-4 py-3">
                     <button

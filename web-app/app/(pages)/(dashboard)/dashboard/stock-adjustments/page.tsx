@@ -114,9 +114,6 @@ export default function StockAdjustmentsPage() {
           <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
             Edit
           </Button>
-          <Button size="sm" variant="danger" onClick={() => setDeleteId(row.id)}>
-            Delete
-          </Button>
         </div>
       ),
     },

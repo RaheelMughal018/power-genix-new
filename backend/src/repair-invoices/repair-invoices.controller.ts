@@ -93,7 +93,7 @@ export class RepairInvoicesController {
         partyName: invoice.customer?.name ?? '',
         partyLabel: 'Customer',
         items: invoice.items.map((li) => ({
-          name: li.item?.name ?? '',
+          name: li.item?.name ?? li.customItemName ?? '',
           quantity: Number(li.quantity),
           unitPrice: Number(li.unitPrice),
           totalPrice: Number(li.quantity) * Number(li.unitPrice),

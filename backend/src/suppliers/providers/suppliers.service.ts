@@ -3,7 +3,8 @@ import { handleError } from '@/common/error-handlers/error.handler';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { PurchaseInvoice } from '@/purchase-invoices/entities/purchase-invoice.entity';
 import { SupplierPayment } from '@/supplier-payments/entities/supplier-payment.entity';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { StockAdjustment } from '@/stock-adjustments/entities/stock-adjustment.entity';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Supplier } from '../entities/supplier.entity';
@@ -20,6 +21,8 @@ export class SuppliersService {
     private readonly purchaseInvoiceRepository: Repository<PurchaseInvoice>,
     @InjectRepository(SupplierPayment)
     private readonly supplierPaymentRepository: Repository<SupplierPayment>,
+    @InjectRepository(StockAdjustment)
+    private readonly stockAdjustmentRepository: Repository<StockAdjustment>,
   ) {}
 
   async findAll(query: SupplierQueryDto) {
@@ -39,6 +42,14 @@ export class SuppliersService {
           `COALESCE((SELECT SUM(CAST(sp."amount" AS numeric)) FROM supplier_payment sp WHERE sp."supplierId" = supplier.id AND sp."deletedAt" IS NULL), 0)`,
           'supplier_totalPaid',
         )
+        .addSelect(
+          `CASE WHEN (
+            EXISTS(SELECT 1 FROM purchase_invoice pi WHERE pi."supplierId" = supplier.id AND pi."deletedAt" IS NULL)
+            OR EXISTS(SELECT 1 FROM supplier_payment sp WHERE sp."supplierId" = supplier.id AND sp."deletedAt" IS NULL)
+            OR EXISTS(SELECT 1 FROM stock_adjustment sa WHERE sa."supplierId" = supplier.id AND sa."deletedAt" IS NULL)
+          ) THEN false ELSE true END`,
+          'supplier_canDelete',
+        )
         .orderBy('supplier.name', 'ASC');
 
       if (query.search) {
@@ -56,6 +67,7 @@ export class SuppliersService {
         totalPurchase: Number(raw[i]?.supplier_totalPurchase ?? 0),
         totalPaid: Number(raw[i]?.supplier_totalPaid ?? 0),
         due: Number(supplier.openingBalance) + Number(raw[i]?.supplier_totalPurchase ?? 0) - Number(raw[i]?.supplier_totalPaid ?? 0),
+        canDelete: raw[i]?.supplier_canDelete === true || raw[i]?.supplier_canDelete === 'true',
       }));
 
       return {
@@ -173,6 +185,14 @@ export class SuppliersService {
 
       if (!supplier) {
         throw new NotFoundException(`Supplier #${id} not found`);
+      }
+
+      const hasInvoices = await this.purchaseInvoiceRepository.count({ where: { supplierId: id } });
+      const hasPayments = await this.supplierPaymentRepository.count({ where: { supplierId: id } });
+      const hasAdjustments = await this.stockAdjustmentRepository.count({ where: { supplierId: id } });
+
+      if (hasInvoices || hasPayments || hasAdjustments) {
+        throw new BadRequestException('Cannot delete supplier with existing transactions');
       }
 
       await this.suppliersRepository.softDelete(id);

@@ -80,9 +80,9 @@ export default function EditSaleInvoicePage() {
           itemId: String(li.item.id),
           itemName: li.item.name,
           itemType: li.item.type || '',
-          quantity: li.quantity,
-          unitPrice: li.unitPrice,
-          totalPrice: li.totalPrice,
+          quantity: Number(li.quantity),
+          unitPrice: Number(li.unitPrice),
+          totalPrice: Number(li.totalPrice),
           serialNumber: li.serialNumber,
         })));
       } catch {

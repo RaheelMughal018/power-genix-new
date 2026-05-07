@@ -73,9 +73,9 @@ export default function EditPurchaseInvoicePage() {
           id: String(li.id),
           itemId: String(li.item.id),
           itemName: li.item.name,
-          quantity: li.quantity,
-          unitPrice: li.unitPrice,
-          totalPrice: li.totalPrice,
+          quantity: Number(li.quantity),
+          unitPrice: Number(li.unitPrice),
+          totalPrice: Number(li.totalPrice),
         })));
       } catch {
         addToast({ title: 'Error', description: 'Failed to load invoice', variant: 'error' });

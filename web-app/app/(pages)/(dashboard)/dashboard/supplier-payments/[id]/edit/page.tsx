@@ -12,7 +12,7 @@ import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
 
 interface DropdownOption { id: number; name: string; }
-interface AccountOption { id: number; name: string; balance?: number; }
+interface AccountOption { id: number; name: string; currentBalance?: number; }
 
 interface PaymentDetail {
   id: number;
@@ -48,9 +48,9 @@ export default function EditSupplierPaymentPage() {
   const [suppliers, setSuppliers] = useState<DropdownOption[]>([]);
   const [accounts, setAccounts] = useState<AccountOption[]>([]);
 
-  const [supplierId, setSupplierId] = useState('');
+  const [supplierId, setSupplierId] = useState<number | ''>('');
   const [amount, setAmount] = useState('');
-  const [accountId, setAccountId] = useState('');
+  const [accountId, setAccountId] = useState<number | ''>('');
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -66,9 +66,9 @@ export default function EditSupplierPaymentPage() {
         setAccounts(unwrapList<AccountOption>(accRes));
 
         const payment = unwrapOne<PaymentDetail>(payRes);
-        setSupplierId(String(payment.supplierId || payment.supplier?.id || ''));
+        setSupplierId(payment.supplierId || payment.supplier?.id || '');
         setAmount(String(payment.amount || ''));
-        setAccountId(String(payment.accountId || payment.account?.id || ''));
+        setAccountId(payment.accountId || payment.account?.id || '');
         setDate(payment.date?.slice(0, 10) || '');
         setNotes(payment.notes || '');
       } catch {
@@ -133,7 +133,7 @@ export default function EditSupplierPaymentPage() {
           label="Supplier"
           required
           value={supplierId}
-          onChange={(v) => setSupplierId(String(v))}
+          onChange={(v) => setSupplierId(Number(v))}
           options={suppliers.map((s) => ({ value: s.id, label: s.name }))}
           placeholder="Select supplier"
         />
@@ -160,13 +160,13 @@ export default function EditSupplierPaymentPage() {
             label="Account"
             required
             value={accountId}
-            onChange={(v) => setAccountId(String(v))}
-            options={accounts.map((a) => ({ value: a.id, label: a.name, sublabel: a.balance !== undefined ? `Balance: ${formatPKR(a.balance)}` : undefined }))}
+            onChange={(v) => setAccountId(Number(v))}
+            options={accounts.map((a) => ({ value: a.id, label: a.name, sublabel: a.currentBalance !== undefined ? `Balance: ${formatPKR(a.currentBalance)}` : undefined }))}
             placeholder="Select account"
           />
-          {selectedAccount?.balance !== undefined && (
+          {selectedAccount?.currentBalance !== undefined && (
             <p className="text-xs text-(--color-text-secondary)">
-              Available balance: {formatPKR(selectedAccount.balance)}
+              Available balance: {formatPKR(selectedAccount.currentBalance)}
             </p>
           )}
         </div>

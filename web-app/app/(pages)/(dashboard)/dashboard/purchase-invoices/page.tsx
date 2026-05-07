@@ -6,6 +6,7 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { DateRangeSelector } from '@/app/_shared/components/ui/dateSelector/dateRangeSelector';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
 import { usePurchaseInvoices, type PurchaseInvoice } from './usePurchaseInvoices';
 
@@ -33,7 +34,7 @@ export default function PurchaseInvoicesPage() {
       ),
     },
     { key: 'supplier', label: 'Supplier', render: (row) => row.supplier?.name || '-' },
-    { key: 'date', label: 'Date', render: (row) => new Date(row.date).toLocaleDateString() },
+    { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'grandTotal', label: 'Amount', render: (row) => formatPKR(row.grandTotal ?? row.totalAmount) },
     {
       key: 'actions', label: 'Actions', width: '160px',

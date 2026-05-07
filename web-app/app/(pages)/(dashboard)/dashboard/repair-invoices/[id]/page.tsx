@@ -121,7 +121,7 @@ export default function ViewRepairInvoicePage() {
           </div>
           {invoice.serialNumber && (
             <div>
-              <p className="text-[10px] text-(--color-text-secondary) uppercase tracking-widest font-medium mb-1">Serial Number</p>
+              <p className="text-[10px] text-(--color-text-secondary) uppercase tracking-widest font-medium mb-1">Serial / Product</p>
               <p className="text-sm font-mono font-semibold text-(--color-text-primary)">{invoice.serialNumber}</p>
             </div>
           )}
@@ -134,7 +134,7 @@ export default function ViewRepairInvoicePage() {
 
       <div className="border border-(--color-border) rounded-lg overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[var(--color-primary-50)]">
+          <thead className="bg-(--color-bg-secondary)">
             <tr>
               <th className="text-left px-4 py-3 text-(--color-text-secondary) font-semibold w-12">#</th>
               <th className="text-left px-4 py-3 text-(--color-text-secondary) font-semibold">Item</th>

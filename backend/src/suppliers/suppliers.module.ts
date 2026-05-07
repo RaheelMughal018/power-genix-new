@@ -1,4 +1,5 @@
 import { PurchaseInvoice } from '@/purchase-invoices/entities/purchase-invoice.entity';
+import { StockAdjustment } from '@/stock-adjustments/entities/stock-adjustment.entity';
 import { SupplierPayment } from '@/supplier-payments/entities/supplier-payment.entity';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,7 +8,7 @@ import { SuppliersController } from './suppliers.controller';
 import { SuppliersService } from './providers/suppliers.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Supplier, PurchaseInvoice, SupplierPayment])],
+  imports: [TypeOrmModule.forFeature([Supplier, PurchaseInvoice, SupplierPayment, StockAdjustment])],
   controllers: [SuppliersController],
   providers: [SuppliersService],
   exports: [SuppliersService, TypeOrmModule],

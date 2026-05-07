@@ -3,7 +3,7 @@ import { handleError } from '@/common/error-handlers/error.handler';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Item } from '../entities/item.entity';
 import { CreateItemDto } from '../dtos/create-item.dto';
 import { UpdateItemDto } from '../dtos/update-item.dto';
@@ -15,6 +15,7 @@ export class ItemsService {
   constructor(
     @InjectRepository(Item)
     private readonly itemsRepository: Repository<Item>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findAll(query: ItemQueryDto) {
@@ -177,7 +178,20 @@ export class ItemsService {
         );
       }
 
-      // TODO: Also check for invoice/recipe records before deleting
+      const hasRecords = await this.dataSource.query(
+        `SELECT EXISTS(
+          SELECT 1 FROM purchase_invoice_item WHERE "itemId" = $1
+          UNION ALL SELECT 1 FROM sale_invoice_item WHERE "itemId" = $1
+          UNION ALL SELECT 1 FROM repair_invoice_item WHERE "itemId" = $1
+          UNION ALL SELECT 1 FROM recipe_item WHERE "itemId" = $1
+          UNION ALL SELECT 1 FROM production_unit_item WHERE "itemId" = $1
+        ) AS "exists"`,
+        [id],
+      );
+
+      if (hasRecords[0]?.exists) {
+        throw new BadRequestException('Cannot delete item with existing invoice, recipe, or production records');
+      }
 
       await this.itemsRepository.softDelete(id);
 
@@ -202,15 +216,14 @@ export class ItemsService {
       });
 
       return toCsvBuffer(
-        ['Name', 'Category', 'Current Stock', 'Min Stock', 'Cost Price', 'Sale Price', 'Type'],
+        ['Name', 'Category', 'Type', 'Quantity', 'Avg Price', 'Total Value'],
         items.map((item) => ({
           'Name': item.name,
           'Category': item.category?.name ?? '',
-          'Current Stock': item.totalQuantity,
-          'Min Stock': item.minStock,
-          'Cost Price': item.averagePrice,
-          'Sale Price': item.averagePrice,
           'Type': item.type,
+          'Quantity': Number(item.totalQuantity),
+          'Avg Price': Number(item.averagePrice),
+          'Total Value': Number(item.totalQuantity) * Number(item.averagePrice),
         })),
       );
     } catch (error) {

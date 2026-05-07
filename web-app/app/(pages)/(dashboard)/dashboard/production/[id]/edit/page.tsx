@@ -116,6 +116,29 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
     setUnits(updated);
   };
 
+  const addBatchItem = () => {
+    const newItem: UnitItem = { itemId: 0, quantity: 1, unitPrice: 0 };
+    setUnits(units.map((unit) => ({ ...unit, items: [...unit.items, { ...newItem }] })));
+  };
+
+  const removeBatchItem = (itemIdx: number) => {
+    if (units[0]?.items.length <= 1) return;
+    setUnits(units.map((unit) => ({ ...unit, items: unit.items.filter((_, i) => i !== itemIdx) })));
+  };
+
+  const addUnitItem = (unitIdx: number) => {
+    const updated = [...units];
+    updated[unitIdx] = { ...updated[unitIdx], items: [...updated[unitIdx].items, { itemId: 0, quantity: 1, unitPrice: 0 }] };
+    setUnits(updated);
+  };
+
+  const removeUnitItem = (unitIdx: number, itemIdx: number) => {
+    if (units[unitIdx]?.items.length <= 1) return;
+    const updated = [...units];
+    updated[unitIdx] = { ...updated[unitIdx], items: updated[unitIdx].items.filter((_, i) => i !== itemIdx) };
+    setUnits(updated);
+  };
+
   const quantity = batch?.quantity || 0;
   const recipeExpense = Number(batch?.recipe?.additionalExpense) || 0;
   const copperPerUnit = quantity > 0 ? copperAmount / quantity : 0;
@@ -197,8 +220,9 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
                   <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-(--color-text-secondary) uppercase px-1">
                     <div className="col-span-4">Item</div>
                     <div className="col-span-2">Qty</div>
-                    <div className="col-span-3">Unit Price</div>
+                    <div className="col-span-2">Unit Price</div>
                     <div className="col-span-3">Total</div>
+                    <div className="col-span-1" />
                   </div>
                   {units[0].items.map((item, itemIdx) => (
                     <div key={itemIdx} className="grid grid-cols-12 gap-2 items-center">
@@ -214,10 +238,14 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
                         <input type="number" min={1} value={item.quantity || ''} onChange={(e) => updateBatchItem(itemIdx, 'quantity', Number(e.target.value))}
                           className="w-full px-2 py-2 rounded-lg border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm" />
                       </div>
-                      <div className="col-span-3 text-sm text-(--color-text-secondary) px-1">{formatPKR(item.unitPrice)}</div>
+                      <div className="col-span-2 text-sm text-(--color-text-secondary) px-1">{formatPKR(item.unitPrice)}</div>
                       <div className="col-span-3 text-sm font-medium text-(--color-text-primary) px-1">{formatPKR(item.quantity * item.unitPrice)}</div>
+                      <div className="col-span-1">
+                        <button type="button" onClick={() => removeBatchItem(itemIdx)} className="text-(--color-text-secondary) hover:text-red-500 text-lg">×</button>
+                      </div>
                     </div>
                   ))}
+                  <Button size="sm" variant="outline" onClick={addBatchItem}>+ Add Item</Button>
                 </div>
               </div>
             </div>
@@ -245,10 +273,14 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
                         <input type="number" min={1} value={item.quantity || ''} onChange={(e) => updateUnitItem(unitIdx, itemIdx, 'quantity', Number(e.target.value))}
                           className="w-full px-2 py-2 rounded-lg border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm" />
                       </div>
-                      <div className="col-span-3 text-sm text-(--color-text-secondary) px-1">{formatPKR(item.unitPrice)}</div>
+                      <div className="col-span-2 text-sm text-(--color-text-secondary) px-1">{formatPKR(item.unitPrice)}</div>
                       <div className="col-span-3 text-sm font-medium text-(--color-text-primary) px-1">{formatPKR(item.quantity * item.unitPrice)}</div>
+                      <div className="col-span-1">
+                        <button type="button" onClick={() => removeUnitItem(unitIdx, itemIdx)} className="text-(--color-text-secondary) hover:text-red-500 text-lg">×</button>
+                      </div>
                     </div>
                   ))}
+                  <Button size="sm" variant="outline" onClick={() => addUnitItem(unitIdx)}>+ Add Item</Button>
                 </div>
               </div>
             </div>

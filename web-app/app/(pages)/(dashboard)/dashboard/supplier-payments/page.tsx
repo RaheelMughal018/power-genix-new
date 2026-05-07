@@ -6,6 +6,7 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { DateRangeSelector } from '@/app/_shared/components/ui/dateSelector/dateRangeSelector';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
 import { useSupplierPayments, type SupplierPayment } from './useSupplierPayments';
 
@@ -21,7 +22,7 @@ export default function SupplierPaymentsPage() {
   const columns: Column<SupplierPayment>[] = [
     { key: 'invoiceNumber', label: 'Invoice #', render: (row) => row.invoiceNumber || `SP-${row.id}` },
     { key: 'supplier', label: 'Supplier', render: (row) => row.supplier?.name || '-' },
-    { key: 'date', label: 'Date', render: (row) => new Date(row.date).toLocaleDateString() },
+    { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'amount', label: 'Amount', render: (row) => formatPKR(row.amount) },
     { key: 'account', label: 'Account', render: (row) => row.account?.name || '-' },
     {

@@ -12,21 +12,9 @@ import {
 } from 'class-validator';
 
 export class RepairInvoiceItemDto {
-  @ApiPropertyOptional({ description: 'Required when not a custom item' })
+  @ApiProperty()
   @IsNumber()
-  @IsOptional()
-  itemId?: number;
-
-  @ApiPropertyOptional({ description: 'Name for custom (non-stock) items' })
-  @IsString()
-  @IsOptional()
-  customItemName?: string;
-
-  @ApiPropertyOptional({ description: 'Unit price for custom items (overrides stock price)' })
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  customUnitPrice?: number;
+  itemId: number;
 
   @ApiProperty()
   @IsNumber()

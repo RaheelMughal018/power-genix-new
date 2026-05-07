@@ -35,7 +35,10 @@ export class PurchaseInvoicesService {
         .addOrderBy('pi.id', 'DESC');
 
       if (query.search) {
-        qb.andWhere('pi.invoiceNumber ILIKE :search', { search: `%${query.search}%` });
+        qb.andWhere(
+          '(pi.invoiceNumber ILIKE :search OR supplier.name ILIKE :search)',
+          { search: `%${query.search}%` },
+        );
       }
 
       if (query.supplierId) {
@@ -232,17 +235,17 @@ export class PurchaseInvoicesService {
       });
 
       await queryRunner.commitTransaction();
+      await queryRunner.release();
 
-      return queryRunner.manager.findOne(PurchaseInvoice, {
+      return this.invoiceRepository.findOne({
         where: { id },
         relations: ['supplier', 'createdBy', 'items', 'items.item'],
       });
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       handleError(error);
       throw error;
-    } finally {
-      await queryRunner.release();
     }
   }
 
@@ -269,12 +272,13 @@ export class PurchaseInvoicesService {
       });
 
       return toCsvBuffer(
-        ['Invoice #', 'Date', 'Supplier', 'Total Amount', 'Notes'],
+        ['Invoice #', 'Date', 'Supplier', 'Discount', 'Total Amount', 'Notes'],
         invoices.map((inv) => ({
           'Invoice #': inv.invoiceNumber,
           'Date': inv.date,
           'Supplier': inv.supplier?.name ?? '',
-          'Total Amount': inv.totalAmount,
+          'Discount': Number(inv.discount ?? 0),
+          'Total Amount': Number(inv.totalAmount),
           'Notes': inv.notes ?? '',
         })),
       );

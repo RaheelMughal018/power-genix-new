@@ -174,17 +174,17 @@ export class CustomerPaymentsService {
       });
 
       await queryRunner.commitTransaction();
+      await queryRunner.release();
 
-      return queryRunner.manager.findOne(CustomerPayment, {
+      return this.paymentRepository.findOne({
         where: { id },
         relations: ['customer', 'account', 'createdBy'],
       });
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       handleError(error);
       throw error;
-    } finally {
-      await queryRunner.release();
     }
   }
 

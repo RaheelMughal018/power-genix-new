@@ -85,20 +85,15 @@ export default function EditRepairInvoicePage() {
         setSerialNumber(inv.serialNumber || '');
         setIsCharged(inv.isCharged ?? true);
         setLaborCost(inv.laborCost || 0);
-        setLineItems((inv.items || []).map((li) => {
-          const isCustom = !li.item && !!li.customItemName;
-          return {
-            id: String(li.id),
-            isCustom,
-            itemId: li.item ? String(li.item.id) : '',
-            itemName: li.item?.name ?? '',
-            customItemName: li.customItemName ?? '',
-            quantity: li.quantity,
-            unitPrice: Number(li.unitPrice),
-            totalPrice: Number(li.unitPrice) * li.quantity,
-            isReal: isCustom ? false : (li.isReal ?? true),
-          };
-        }));
+        setLineItems((inv.items || []).map((li) => ({
+          id: String(li.id),
+          itemId: li.item ? String(li.item.id) : '',
+          itemName: li.item?.name ?? '',
+          quantity: li.quantity,
+          unitPrice: Number(li.unitPrice),
+          totalPrice: Number(li.unitPrice) * li.quantity,
+          isReal: li.isReal ?? true,
+        })));
       } catch {
         addToast({ title: 'Error', description: 'Failed to load invoice', variant: 'error' });
       } finally {
@@ -112,7 +107,7 @@ export default function EditRepairInvoicePage() {
     if (!customerId) { addToast({ title: 'Error', description: 'Select a customer', variant: 'error' }); return; }
     if (!description.trim()) { addToast({ title: 'Error', description: 'Description is required', variant: 'error' }); return; }
     if (!date) { addToast({ title: 'Error', description: 'Select a date', variant: 'error' }); return; }
-    const validItems = lineItems.filter((l) => (l.isCustom ? l.customItemName.trim() : l.itemId) && l.quantity > 0);
+    const validItems = lineItems.filter((l) => l.itemId && l.quantity > 0);
     if (validItems.length === 0) { addToast({ title: 'Error', description: 'Add at least one part', variant: 'error' }); return; }
 
     setSubmitting(true);
@@ -121,10 +116,7 @@ export default function EditRepairInvoicePage() {
         customerId, description, date, isCharged,
         serialNumber: serialNumber.trim() || undefined,
         laborCost: isCharged && laborCost > 0 ? laborCost : undefined,
-        items: validItems.map((l) => l.isCustom
-          ? { customItemName: l.customItemName, customUnitPrice: l.unitPrice, quantity: l.quantity, isReal: false }
-          : { itemId: Number(l.itemId), quantity: l.quantity, isReal: l.isReal }
-        ),
+        items: validItems.map((l) => ({ itemId: Number(l.itemId), quantity: l.quantity, isReal: l.isReal })),
       });
       addToast({ title: 'Success', description: 'Repair invoice updated', variant: 'success' });
       router.push(`${ROUTES.REPAIR_INVOICES}/${id}`);
@@ -163,8 +155,8 @@ export default function EditRepairInvoicePage() {
         />
         <DateInput value={date} onChange={setDate} label="Date" required />
         <div className="space-y-1">
-          <label className={labelCls}>Serial Number</label>
-          <input type="text" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} className={inputCls} placeholder="Optional serial number" />
+          <label className={labelCls}>Serial / Product Name</label>
+          <input type="text" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} className={inputCls} placeholder="e.g. LEH-2026-001 or Samsung 5KW" />
         </div>
       </div>
 

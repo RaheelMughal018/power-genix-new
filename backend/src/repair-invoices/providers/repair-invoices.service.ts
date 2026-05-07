@@ -34,6 +34,13 @@ export class RepairInvoicesService {
         .orderBy('ri.date', 'DESC')
         .addOrderBy('ri.id', 'DESC');
 
+      if (query.search) {
+        qb.andWhere(
+          '(ri.invoiceNumber ILIKE :search OR customer.name ILIKE :search)',
+          { search: `%${query.search}%` },
+        );
+      }
+
       if (query.customerId) {
         qb.andWhere('ri.customerId = :customerId', { customerId: query.customerId });
       }
@@ -110,40 +117,30 @@ export class RepairInvoicesService {
       const savedInvoice = await queryRunner.manager.save(RepairInvoice, invoice);
 
       for (const lineDto of dto.items) {
-        let unitPrice: number;
-        let itemId: number | null = null;
-        let customItemName: string | null = null;
+        const item = await queryRunner.manager.findOne(Item, { where: { id: lineDto.itemId } });
+        if (!item) throw new NotFoundException(`Item #${lineDto.itemId} not found`);
+        const unitPrice = Number(item.averagePrice);
 
-        if (lineDto.customItemName) {
-          unitPrice = lineDto.customUnitPrice ?? 0;
-          customItemName = lineDto.customItemName;
-        } else {
-          const item = await queryRunner.manager.findOne(Item, { where: { id: lineDto.itemId } });
-          if (!item) throw new NotFoundException(`Item #${lineDto.itemId} not found`);
-          unitPrice = Number(item.averagePrice);
-          itemId = item.id;
-
-          if (lineDto.isReal) {
-            if (Number(item.totalQuantity) < lineDto.quantity) {
-              throw new BadRequestException(
-                `Insufficient stock for "${item.name}": available ${item.totalQuantity}, requested ${lineDto.quantity}`,
-              );
-            }
-            await queryRunner.manager.update(Item, { id: itemId }, {
-              totalQuantity: Number(item.totalQuantity) - lineDto.quantity,
-            });
+        if (lineDto.isReal) {
+          if (Number(item.totalQuantity) < lineDto.quantity) {
+            throw new BadRequestException(
+              `Insufficient stock for "${item.name}": available ${item.totalQuantity}, requested ${lineDto.quantity}`,
+            );
           }
+          await queryRunner.manager.update(Item, { id: item.id }, {
+            totalQuantity: Number(item.totalQuantity) - lineDto.quantity,
+          });
         }
 
         partsTotal += lineDto.quantity * unitPrice;
 
         const lineItem = queryRunner.manager.create(RepairInvoiceItem, {
           invoiceId: savedInvoice.id,
-          itemId,
-          customItemName,
+          itemId: item.id,
+          customItemName: null,
           quantity: lineDto.quantity,
           unitPrice,
-          isReal: lineDto.customItemName ? false : lineDto.isReal,
+          isReal: lineDto.isReal,
         });
 
         await queryRunner.manager.save(RepairInvoiceItem, lineItem);
@@ -200,40 +197,30 @@ export class RepairInvoicesService {
       let partsTotal = 0;
 
       for (const lineDto of dto.items) {
-        let unitPrice: number;
-        let itemId: number | null = null;
-        let customItemName: string | null = null;
+        const item = await queryRunner.manager.findOne(Item, { where: { id: lineDto.itemId } });
+        if (!item) throw new NotFoundException(`Item #${lineDto.itemId} not found`);
+        const unitPrice = Number(item.averagePrice);
 
-        if (lineDto.customItemName) {
-          unitPrice = lineDto.customUnitPrice ?? 0;
-          customItemName = lineDto.customItemName;
-        } else {
-          const item = await queryRunner.manager.findOne(Item, { where: { id: lineDto.itemId } });
-          if (!item) throw new NotFoundException(`Item #${lineDto.itemId} not found`);
-          unitPrice = Number(item.averagePrice);
-          itemId = item.id;
-
-          if (lineDto.isReal) {
-            if (Number(item.totalQuantity) < lineDto.quantity) {
-              throw new BadRequestException(
-                `Insufficient stock for "${item.name}": available ${item.totalQuantity}, requested ${lineDto.quantity}`,
-              );
-            }
-            await queryRunner.manager.update(Item, { id: itemId }, {
-              totalQuantity: Number(item.totalQuantity) - lineDto.quantity,
-            });
+        if (lineDto.isReal) {
+          if (Number(item.totalQuantity) < lineDto.quantity) {
+            throw new BadRequestException(
+              `Insufficient stock for "${item.name}": available ${item.totalQuantity}, requested ${lineDto.quantity}`,
+            );
           }
+          await queryRunner.manager.update(Item, { id: item.id }, {
+            totalQuantity: Number(item.totalQuantity) - lineDto.quantity,
+          });
         }
 
         partsTotal += lineDto.quantity * unitPrice;
 
         const lineItem = queryRunner.manager.create(RepairInvoiceItem, {
           invoiceId: id,
-          itemId,
-          customItemName,
+          itemId: item.id,
+          customItemName: null,
           quantity: lineDto.quantity,
           unitPrice,
-          isReal: lineDto.customItemName ? false : lineDto.isReal,
+          isReal: lineDto.isReal,
         });
 
         await queryRunner.manager.save(RepairInvoiceItem, lineItem);
@@ -252,17 +239,17 @@ export class RepairInvoicesService {
       });
 
       await queryRunner.commitTransaction();
+      await queryRunner.release();
 
-      return queryRunner.manager.findOne(RepairInvoice, {
+      return this.invoiceRepository.findOne({
         where: { id },
         relations: ['customer', 'createdBy', 'items', 'items.item'],
       });
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       handleError(error);
       throw error;
-    } finally {
-      await queryRunner.release();
     }
   }
 
@@ -307,15 +294,15 @@ export class RepairInvoicesService {
       });
 
       return toCsvBuffer(
-        ['Invoice #', 'Date', 'Customer', 'Total Amount', 'Labor Cost', 'Charged', 'Notes'],
+        ['Invoice #', 'Date', 'Customer', 'Type', 'Labor Cost', 'Total Amount', 'Description'],
         invoices.map((inv) => ({
           'Invoice #': inv.invoiceNumber,
           'Date': inv.date,
           'Customer': inv.customer?.name ?? '',
-          'Total Amount': inv.totalAmount,
-          'Labor Cost': inv.laborCost,
-          'Charged': inv.isCharged ? 'Yes' : 'No',
-          'Notes': inv.description ?? '',
+          'Type': inv.isCharged ? 'Charged' : 'FOC',
+          'Labor Cost': Number(inv.laborCost ?? 0),
+          'Total Amount': Number(inv.totalAmount),
+          'Description': inv.description ?? '',
         })),
       );
     } catch (error) {

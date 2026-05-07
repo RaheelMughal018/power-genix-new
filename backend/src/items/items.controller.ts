@@ -77,9 +77,9 @@ export class ItemsController {
     const allItems = await this.itemsService.findAllForPdf();
     const pdfItems = allItems.map((item) => ({
       name: item.name,
-      category: item.category?.name,
-      currentStock: item.totalQuantity,
-      minStock: item.minStock,
+      category: item.category?.name ?? '',
+      currentStock: Number(item.totalQuantity),
+      minStock: Number(item.minStock),
       costPrice: Number(item.averagePrice),
       salePrice: Number(item.averagePrice),
     }));

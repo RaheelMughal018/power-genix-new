@@ -6,13 +6,14 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { Spinner } from '@/app/_shared/components/ui/spinner/spinner';
 import { useToast } from '@/app/_shared/components/ui/toast/toast';
 import { supplierPaymentsApi, suppliersApi, accountsApi } from '@/app/_shared/lib/api/client';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
 import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
 
 interface DropdownOption { id: number; name: string; }
-interface AccountOption { id: number; name: string; balance?: number; }
+interface AccountOption { id: number; name: string; currentBalance?: number; }
 
 const unwrapList = <T,>(res: { data: unknown }): T[] => {
   const raw = res.data as { data?: { data: T[] } } & { data: T[] };
@@ -30,10 +31,10 @@ export default function CreateSupplierPaymentPage() {
   const [suppliers, setSuppliers] = useState<DropdownOption[]>([]);
   const [accounts, setAccounts] = useState<AccountOption[]>([]);
 
-  const [supplierId, setSupplierId] = useState('');
+  const [supplierId, setSupplierId] = useState<number | ''>('');
   const [amount, setAmount] = useState('');
-  const [accountId, setAccountId] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [accountId, setAccountId] = useState<number | ''>('');
+  const [date, setDate] = useState(toLocalISO(new Date()));
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function CreateSupplierPaymentPage() {
     }
   };
 
-  const selectedAccount = accounts.find((a) => String(a.id) === accountId);
+  const selectedAccount = accounts.find((a) => a.id === accountId);
 
   if (loading) return <div className="flex justify-center py-12"><Spinner size="lg" /></div>;
 
@@ -111,7 +112,7 @@ export default function CreateSupplierPaymentPage() {
           required
           placeholder="Select supplier"
           value={supplierId}
-          onChange={(v) => setSupplierId(String(v))}
+          onChange={(v) => setSupplierId(Number(v))}
           options={suppliers.map((s) => ({ value: s.id, label: s.name }))}
         />
 
@@ -138,12 +139,12 @@ export default function CreateSupplierPaymentPage() {
             required
             placeholder="Select account"
             value={accountId}
-            onChange={(v) => setAccountId(String(v))}
-            options={accounts.map((a) => ({ value: a.id, label: a.name, sublabel: a.balance !== undefined ? `Balance: ${formatPKR(a.balance)}` : undefined }))}
+            onChange={(v) => setAccountId(Number(v))}
+            options={accounts.map((a) => ({ value: a.id, label: a.name, sublabel: a.currentBalance !== undefined ? `Balance: ${formatPKR(a.currentBalance)}` : undefined }))}
           />
-          {selectedAccount?.balance !== undefined && (
+          {selectedAccount?.currentBalance !== undefined && (
             <p className="text-xs text-(--color-text-secondary)">
-              Available balance: {formatPKR(selectedAccount.balance)}
+              Available balance: {formatPKR(selectedAccount.currentBalance)}
             </p>
           )}
         </div>

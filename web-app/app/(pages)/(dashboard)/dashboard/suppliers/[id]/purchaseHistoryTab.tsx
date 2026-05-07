@@ -6,6 +6,7 @@ import { DataTable, type Column } from '@/app/_shared/components/ui/dataTable/da
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
 import { purchaseInvoicesApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 
 interface PurchaseInvoice extends Record<string, unknown> {
@@ -58,7 +59,7 @@ export function PurchaseHistoryTab({ supplierId }: Props) {
         </button>
       ),
     },
-    { key: 'date', label: 'Date', render: (row) => new Date(row.date).toLocaleDateString() },
+    { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'grandTotal', label: 'Amount', render: (row) => formatPKR(row.grandTotal ?? row.totalAmount ?? 0) },
   ];
 

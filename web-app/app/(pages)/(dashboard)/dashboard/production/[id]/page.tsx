@@ -182,48 +182,52 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
         </div>
       )}
 
-      {recipeItems.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-(--color-text-primary)">
-            Bill of Materials (per unit)
-          </h2>
-          <div className="border border-(--color-border) rounded-lg overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-[var(--color-primary-50)]">
-                <tr>
-                  <th className="text-left px-4 py-3 text-(--color-text-secondary) font-semibold w-12">#</th>
-                  <th className="text-left px-4 py-3 text-(--color-text-secondary) font-semibold">Item</th>
-                  <th className="text-center px-4 py-3 text-(--color-text-secondary) font-semibold">Unit</th>
-                  <th className="text-right px-4 py-3 text-(--color-text-secondary) font-semibold">Qty / Unit</th>
-                  <th className="text-right px-4 py-3 text-(--color-text-secondary) font-semibold">Total Qty</th>
-                  <th className="text-right px-4 py-3 text-(--color-text-secondary) font-semibold">Avg Price</th>
-                  <th className="text-right px-4 py-3 text-(--color-text-secondary) font-semibold">Line Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recipeItems.map((ri, idx) => {
-                  const totalQty = ri.quantity * batch.quantity;
-                  const avgPrice = Number(ri.item.averagePrice);
-                  return (
-                    <tr key={ri.id} className={[
-                      'border-t border-(--color-border)',
-                      idx % 2 === 1 ? 'bg-[var(--color-bg-tertiary)]' : '',
-                    ].filter(Boolean).join(' ')}>
-                      <td className="px-4 py-3 text-(--color-text-secondary)">{idx + 1}</td>
-                      <td className="px-4 py-3 text-(--color-text-primary) font-medium">{ri.item.name}</td>
-                      <td className="px-4 py-3 text-center text-(--color-text-secondary) uppercase text-xs">{ri.item.unit}</td>
-                      <td className="px-4 py-3 text-right text-(--color-text-primary)">{ri.quantity}</td>
-                      <td className="px-4 py-3 text-right text-(--color-text-primary)">{totalQty}</td>
-                      <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(avgPrice)}</td>
-                      <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(avgPrice * totalQty)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      {recipeItems.length > 0 && (() => {
+        const firstUnitItems = (allUnits[0]?.productionUnitItems || allUnits[0]?.items || []);
+        const snapshotPriceMap = new Map(firstUnitItems.map((ui) => [ui.item?.id ?? 0, Number(ui.unitPrice)]));
+        return (
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold text-(--color-text-primary)">
+              Bill of Materials (per unit)
+            </h2>
+            <div className="border border-(--color-border) rounded-lg overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-(--color-bg-secondary)">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-(--color-text-secondary) font-semibold w-12">#</th>
+                    <th className="text-left px-4 py-3 text-(--color-text-secondary) font-semibold">Item</th>
+                    <th className="text-center px-4 py-3 text-(--color-text-secondary) font-semibold">Unit</th>
+                    <th className="text-right px-4 py-3 text-(--color-text-secondary) font-semibold">Qty / Unit</th>
+                    <th className="text-right px-4 py-3 text-(--color-text-secondary) font-semibold">Total Qty</th>
+                    <th className="text-right px-4 py-3 text-(--color-text-secondary) font-semibold">Unit Price</th>
+                    <th className="text-right px-4 py-3 text-(--color-text-secondary) font-semibold">Line Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recipeItems.map((ri, idx) => {
+                    const totalQty = ri.quantity * batch.quantity;
+                    const price = snapshotPriceMap.get(ri.item.id) ?? Number(ri.item.averagePrice);
+                    return (
+                      <tr key={ri.id} className={[
+                        'border-t border-(--color-border)',
+                        idx % 2 === 1 ? 'bg-[var(--color-bg-tertiary)]' : '',
+                      ].filter(Boolean).join(' ')}>
+                        <td className="px-4 py-3 text-(--color-text-secondary)">{idx + 1}</td>
+                        <td className="px-4 py-3 text-(--color-text-primary) font-medium">{ri.item.name}</td>
+                        <td className="px-4 py-3 text-center text-(--color-text-secondary) uppercase text-xs">{ri.item.unit}</td>
+                        <td className="px-4 py-3 text-right text-(--color-text-primary)">{ri.quantity}</td>
+                        <td className="px-4 py-3 text-right text-(--color-text-primary)">{totalQty}</td>
+                        <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(price)}</td>
+                        <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(price * totalQty)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {allUnits.length > 0 && (
         <div className="space-y-4">

@@ -362,10 +362,17 @@ export class StockAdjustmentsService {
     item: Item,
     qty: number,
   ): Promise<number> {
+    const currentQty = Number(item.totalQuantity);
+    if (currentQty < qty) {
+      throw new BadRequestException(
+        `Insufficient stock for "${item.name}": available ${currentQty}, requested ${qty}`,
+      );
+    }
+
     const deductionAmount = qty * Number(item.averagePrice);
 
     await queryRunner.manager.update(Item, { id: item.id }, {
-      totalQuantity: Number(item.totalQuantity) - qty,
+      totalQuantity: currentQty - qty,
     });
 
     item.totalQuantity = Number(item.totalQuantity) - qty;
@@ -378,11 +385,18 @@ export class StockAdjustmentsService {
     item: Item,
     qty: number,
   ) {
+    const currentQty = Number(item.totalQuantity);
+    if (currentQty < qty) {
+      throw new BadRequestException(
+        `Insufficient stock for "${item.name}": available ${currentQty}, requested ${qty}`,
+      );
+    }
+
     await queryRunner.manager.update(Item, { id: item.id }, {
-      totalQuantity: Number(item.totalQuantity) - qty,
+      totalQuantity: currentQty - qty,
     });
 
-    item.totalQuantity = Number(item.totalQuantity) - qty;
+    item.totalQuantity = currentQty - qty;
   }
 
   private async reverseAdjustment(
@@ -392,7 +406,13 @@ export class StockAdjustmentsService {
   ) {
     if (adjustment.type === AdjustmentType.ADD) {
       // Reverse: remove the added qty and recalculate avg going backwards
-      const newQty = Number(item.totalQuantity) - adjustment.quantity;
+      const currentQty = Number(item.totalQuantity);
+      if (currentQty < adjustment.quantity) {
+        throw new BadRequestException(
+          `Cannot reverse adjustment for "${item.name}": stock already consumed (available ${currentQty}, need ${adjustment.quantity})`,
+        );
+      }
+      const newQty = currentQty - adjustment.quantity;
       // Back-calculate avg: (total - added portion) / remaining qty
       const oldTotal = Number(item.totalQuantity) * Number(item.averagePrice);
       const addedTotal = adjustment.quantity * Number(adjustment.unitPrice ?? 0);

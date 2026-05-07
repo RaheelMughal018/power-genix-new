@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { DatePicker } from '@/app/_shared/components/ui/datePicker/datePicker';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import styles from './dateSelector.module.scss';
 
 interface DateRangeSelectorProps {
@@ -23,13 +24,11 @@ const PRESETS: { key: Preset; label: string }[] = [
   { key: 'custom', label: 'Custom' },
 ];
 
-const toISO = (d: Date) => d.toISOString().split('T')[0];
-
 const getPresetRange = (preset: Exclude<Preset, 'custom'>, fiscalYearStart: number) => {
   const now = new Date();
 
   if (preset === 'today') {
-    const iso = toISO(now);
+    const iso = toLocalISO(now);
     return { from: iso, to: iso };
   }
   if (preset === 'thisWeek') {
@@ -38,18 +37,18 @@ const getPresetRange = (preset: Exclude<Preset, 'custom'>, fiscalYearStart: numb
     mon.setDate(now.getDate() - ((day + 6) % 7));
     const sun = new Date(mon);
     sun.setDate(mon.getDate() + 6);
-    return { from: toISO(mon), to: toISO(sun) };
+    return { from: toLocalISO(mon), to: toLocalISO(sun) };
   }
   if (preset === 'thisMonth') {
     const from = new Date(now.getFullYear(), now.getMonth(), 1);
     const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return { from: toISO(from), to: toISO(to) };
+    return { from: toLocalISO(from), to: toLocalISO(to) };
   }
   const month = now.getMonth() + 1;
   const year = month >= fiscalYearStart ? now.getFullYear() : now.getFullYear() - 1;
   const from = new Date(year, fiscalYearStart - 1, 1);
   const to = new Date(year + 1, fiscalYearStart - 1, 0);
-  return { from: toISO(from), to: toISO(to) };
+  return { from: toLocalISO(from), to: toLocalISO(to) };
 };
 
 export const DateRangeSelector = ({

@@ -174,17 +174,17 @@ export class SupplierPaymentsService {
       });
 
       await queryRunner.commitTransaction();
+      await queryRunner.release();
 
-      return queryRunner.manager.findOne(SupplierPayment, {
+      return this.paymentRepository.findOne({
         where: { id },
         relations: ['supplier', 'account', 'createdBy'],
       });
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       handleError(error);
       throw error;
-    } finally {
-      await queryRunner.release();
     }
   }
 

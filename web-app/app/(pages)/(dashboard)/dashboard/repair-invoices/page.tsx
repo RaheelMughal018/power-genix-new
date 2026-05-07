@@ -7,6 +7,7 @@ import { StatusBadge } from '@/app/_shared/components/ui/statusBadge/statusBadge
 import { DateRangeSelector } from '@/app/_shared/components/ui/dateSelector/dateRangeSelector';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
 import { useRepairInvoices, type RepairInvoice } from './useRepairInvoices';
 
@@ -34,8 +35,9 @@ export default function RepairInvoicesPage() {
       ),
     },
     { key: 'customer', label: 'Customer', render: (row) => row.customer?.name || '-' },
+    { key: 'serialNumber', label: 'Serial / Product', render: (row) => (row.serialNumber as string) || '-' },
     { key: 'description', label: 'Description', render: (row) => (row.description as string) || '-' },
-    { key: 'date', label: 'Date', render: (row) => new Date(row.date).toLocaleDateString() },
+    { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'totalAmount', label: 'Amount', render: (row) => formatPKR(row.totalAmount) },
     {
       key: 'isCharged', label: 'Type',
@@ -56,7 +58,7 @@ export default function RepairInvoicesPage() {
 
   const footerRow = (
     <tr>
-      <td colSpan={4} className="px-4 py-3 text-sm font-semibold text-(--color-text-primary)">Total</td>
+      <td colSpan={5} className="px-4 py-3 text-sm font-semibold text-(--color-text-primary)">Total</td>
       <td className="px-4 py-3 text-sm font-bold text-(--color-primary-600)">{formatPKR(totalAmount)}</td>
       <td colSpan={2} />
     </tr>

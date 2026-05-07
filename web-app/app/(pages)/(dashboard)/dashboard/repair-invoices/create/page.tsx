@@ -6,6 +6,7 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { Spinner } from '@/app/_shared/components/ui/spinner/spinner';
 import { useToast } from '@/app/_shared/components/ui/toast/toast';
 import { repairInvoicesApi, customersApi, itemsApi } from '@/app/_shared/lib/api/client';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
 import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
@@ -28,7 +29,7 @@ export default function CreateRepairInvoicePage() {
   const [isCharged, setIsCharged] = useState(true);
   const [serialNumber, setSerialNumber] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(toLocalISO(new Date()));
   const [laborCost, setLaborCost] = useState(0);
   const [lineItems, setLineItems] = useState<RepairLineItem[]>([emptyRow()]);
 
@@ -62,7 +63,7 @@ export default function CreateRepairInvoicePage() {
     if (!customerId) { addToast({ title: 'Error', description: 'Select a customer', variant: 'error' }); return; }
     if (!description.trim()) { addToast({ title: 'Error', description: 'Description is required', variant: 'error' }); return; }
     if (!date) { addToast({ title: 'Error', description: 'Select a date', variant: 'error' }); return; }
-    const validItems = lineItems.filter((l) => (l.isCustom ? l.customItemName.trim() : l.itemId) && l.quantity > 0);
+    const validItems = lineItems.filter((l) => l.itemId && l.quantity > 0);
     if (validItems.length === 0) { addToast({ title: 'Error', description: 'Add at least one part', variant: 'error' }); return; }
 
     setSubmitting(true);
@@ -71,10 +72,7 @@ export default function CreateRepairInvoicePage() {
         customerId, description, date, isCharged,
         serialNumber: serialNumber.trim() || undefined,
         laborCost: isCharged && laborCost > 0 ? laborCost : undefined,
-        items: validItems.map((l) => l.isCustom
-          ? { customItemName: l.customItemName, customUnitPrice: l.unitPrice, quantity: l.quantity, isReal: false }
-          : { itemId: Number(l.itemId), quantity: l.quantity, isReal: l.isReal }
-        ),
+        items: validItems.map((l) => ({ itemId: Number(l.itemId), quantity: l.quantity, isReal: l.isReal })),
       });
       addToast({ title: 'Success', description: 'Repair invoice created', variant: 'success' });
       router.push(ROUTES.REPAIR_INVOICES);
@@ -134,11 +132,11 @@ export default function CreateRepairInvoicePage() {
           <DateInput value={date} onChange={setDate} label="Date" required />
 
           <div className="space-y-1">
-            <label className={labelCls}>Serial Number</label>
+            <label className={labelCls}>Serial / Product Name</label>
             <input
               type="text" value={serialNumber}
               onChange={(e) => setSerialNumber(e.target.value)}
-              className={inputCls} placeholder="Optional serial number"
+              className={inputCls} placeholder="e.g. LEH-2026-001 or Samsung 5KW"
             />
           </div>
         </div>

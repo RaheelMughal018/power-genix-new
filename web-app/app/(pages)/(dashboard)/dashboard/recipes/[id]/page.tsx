@@ -88,7 +88,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
 
       <div className="border border-(--color-border) rounded-lg overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[var(--color-primary-50)]">
+          <thead className="bg-(--color-bg-secondary)">
             <tr>
               <th className="text-left px-4 py-3 text-(--color-text-secondary) font-semibold w-12">#</th>
               <th className="text-left px-4 py-3 text-(--color-text-secondary) font-semibold">Item</th>

@@ -145,6 +145,29 @@ export default function CreateProductionPage() {
     setUnits(updated);
   };
 
+  const addBatchItem = () => {
+    const newItem: UnitItem = { itemId: 0, quantity: 1, unitPrice: 0 };
+    setUnits(units.map((unit) => ({ ...unit, items: [...unit.items, { ...newItem }] })));
+  };
+
+  const removeBatchItem = (itemIdx: number) => {
+    if (units[0]?.items.length <= 1) return;
+    setUnits(units.map((unit) => ({ ...unit, items: unit.items.filter((_, i) => i !== itemIdx) })));
+  };
+
+  const addUnitItem = (unitIdx: number) => {
+    const updated = [...units];
+    updated[unitIdx] = { ...updated[unitIdx], items: [...updated[unitIdx].items, { itemId: 0, quantity: 1, unitPrice: 0 }] };
+    setUnits(updated);
+  };
+
+  const removeUnitItem = (unitIdx: number, itemIdx: number) => {
+    if (units[unitIdx]?.items.length <= 1) return;
+    const updated = [...units];
+    updated[unitIdx] = { ...updated[unitIdx], items: updated[unitIdx].items.filter((_, i) => i !== itemIdx) };
+    setUnits(updated);
+  };
+
   const copperPerUnit = quantity > 0 ? copperAmount / quantity : 0;
   const unitCosts = units.map((u) =>
     u.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0) + copperPerUnit + recipeExpense
@@ -257,9 +280,13 @@ export default function CreateProductionPage() {
                     </div>
                     <div className="col-span-2 text-sm">{formatPKR(item.unitPrice)}</div>
                     <div className="col-span-2 text-sm font-medium">{formatPKR(item.quantity * item.unitPrice)}</div>
-                    <div className="col-span-2 text-sm">per unit</div>
+                    <div className="col-span-1 text-sm">per unit</div>
+                    <div className="col-span-1">
+                      <button type="button" onClick={() => removeBatchItem(itemIdx)} className="text-(--color-text-secondary) hover:text-red-500 text-lg">×</button>
+                    </div>
                   </div>
                 ))}
+                <Button size="sm" variant="outline" onClick={addBatchItem}>+ Add Item</Button>
               </div>
             )}
 
@@ -283,9 +310,13 @@ export default function CreateProductionPage() {
                         className="w-full px-2 py-1 rounded border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm" />
                     </div>
                     <div className="col-span-2 text-sm">{formatPKR(item.unitPrice)}</div>
-                    <div className="col-span-2 text-sm font-medium">{formatPKR(item.quantity * item.unitPrice)}</div>
+                    <div className="col-span-3 text-sm font-medium">{formatPKR(item.quantity * item.unitPrice)}</div>
+                    <div className="col-span-1">
+                      <button type="button" onClick={() => removeUnitItem(unitIdx, itemIdx)} className="text-(--color-text-secondary) hover:text-red-500 text-lg">×</button>
+                    </div>
                   </div>
                 ))}
+                <Button size="sm" variant="outline" onClick={() => addUnitItem(unitIdx)}>+ Add Item</Button>
               </div>
             ))}
           </div>

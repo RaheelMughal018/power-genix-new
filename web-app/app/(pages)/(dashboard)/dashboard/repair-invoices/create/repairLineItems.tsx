@@ -6,10 +6,8 @@ import { formatPKR } from '@/app/_shared/lib/utils/currency';
 
 export interface RepairLineItem {
   id: string;
-  isCustom: boolean;
   itemId: string;
   itemName: string;
-  customItemName: string;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -33,8 +31,7 @@ interface RepairLineItemsProps {
 
 const emptyRow = (): RepairLineItem => ({
   id: typeof crypto !== 'undefined' ? crypto.randomUUID() : String(Date.now()),
-  isCustom: false,
-  itemId: '', itemName: '', customItemName: '',
+  itemId: '', itemName: '',
   quantity: 1, unitPrice: 0, totalPrice: 0, isReal: true,
 });
 
@@ -57,16 +54,6 @@ export function RepairLineItems({
     updateRow(id, { itemId, itemName: opt?.name || '', unitPrice: opt?.avgPrice || 0 });
   };
 
-  const toggleCustom = (id: string, isCustom: boolean) => {
-    updateRow(id, {
-      isCustom,
-      itemId: '', itemName: '',
-      customItemName: '',
-      unitPrice: 0, totalPrice: 0,
-      isReal: isCustom ? false : true,
-    });
-  };
-
   const removeRow = (id: string) => {
     if (lineItems.length === 1) return;
     onLineItemsChange(lineItems.filter((li) => li.id !== id));
@@ -83,7 +70,6 @@ export function RepairLineItems({
         <table className="w-full text-sm">
           <thead className="bg-(--color-bg-secondary)">
             <tr>
-              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium">Type</th>
               <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium">Item</th>
               <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-20">Qty</th>
               <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-28">Unit Price</th>
@@ -95,33 +81,13 @@ export function RepairLineItems({
           <tbody>
             {lineItems.map((li) => (
               <tr key={li.id} className="border-t border-(--color-border)">
-                <td className="px-3 py-2 w-28">
-                  <select
-                    value={li.isCustom ? 'custom' : 'stock'}
-                    onChange={(e) => toggleCustom(li.id, e.target.value === 'custom')}
-                    className={cellCls}
-                  >
-                    <option value="stock">Stock</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </td>
                 <td className="px-3 py-2">
-                  {li.isCustom ? (
-                    <input
-                      type="text"
-                      value={li.customItemName}
-                      onChange={(e) => updateRow(li.id, { customItemName: e.target.value })}
-                      placeholder="Custom item name"
-                      className={cellCls}
-                    />
-                  ) : (
-                    <SearchableDropdown
-                      options={itemOptions.map((o) => ({ value: o.id, label: o.name }))}
-                      value={li.itemId || undefined}
-                      onChange={(v) => handleItemChange(li.id, String(v))}
-                      placeholder="Select item"
-                    />
-                  )}
+                  <SearchableDropdown
+                    options={itemOptions.map((o) => ({ value: o.id, label: o.name }))}
+                    value={li.itemId || undefined}
+                    onChange={(v) => handleItemChange(li.id, String(v))}
+                    placeholder="Select item"
+                  />
                 </td>
                 <td className="px-3 py-2">
                   <input
@@ -131,25 +97,17 @@ export function RepairLineItems({
                   />
                 </td>
                 <td className="px-3 py-2">
-                  {li.isCustom ? (
-                    <input
-                      type="number" min={0} value={li.unitPrice}
-                      onChange={(e) => updateRow(li.id, { unitPrice: Number(e.target.value) })}
-                      className={`${cellCls} text-right`}
-                    />
-                  ) : (
-                    <input
-                      type="number" min={0} value={li.unitPrice} readOnly
-                      className="w-full px-2 py-1.5 rounded border border-(--color-border) bg-(--color-bg-secondary) text-(--color-text-secondary) text-sm text-right cursor-not-allowed"
-                    />
-                  )}
+                  <input
+                    type="number" min={0} value={li.unitPrice} readOnly
+                    className="w-full px-2 py-1.5 rounded border border-(--color-border) bg-(--color-bg-secondary) text-(--color-text-secondary) text-sm text-right cursor-not-allowed"
+                  />
                 </td>
                 <td className="px-3 py-2 text-right font-medium text-(--color-text-primary)">{formatPKR(li.totalPrice)}</td>
                 <td className="px-3 py-2 text-center">
                   <input
-                    type="checkbox" checked={li.isReal} disabled={li.isCustom}
+                    type="checkbox" checked={li.isReal}
                     onChange={(e) => updateRow(li.id, { isReal: e.target.checked })}
-                    className="w-4 h-4 accent-(--color-primary-600) disabled:opacity-40"
+                    className="w-4 h-4 accent-(--color-primary-600)"
                   />
                 </td>
                 <td className="px-3 py-2">

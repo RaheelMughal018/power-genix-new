@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { stockAdjustmentsApi, itemsApi, suppliersApi } from '@/app/_shared/lib/api/client';
 import { useToast } from '@/app/_shared/components/ui/toast/toast';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import { downloadCsv } from '@/app/_shared/lib/utils/download';
 
 export interface ItemOption extends Record<string, unknown> {
@@ -59,7 +60,7 @@ export interface AdjustmentFormValues {
 }
 
 const LIMIT = 20;
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => toLocalISO(new Date());
 
 const defaultForm = (): AdjustmentFormValues => ({
   itemId: '',

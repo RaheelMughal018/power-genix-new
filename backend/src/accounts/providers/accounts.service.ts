@@ -1,6 +1,5 @@
 import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import { handleError } from '@/common/error-handlers/error.handler';
-import { PaginationProvider } from '@/common/pagination/providers/pagination.provider';
 import { PaginationQueryDto } from '@/common/pagination/dtos/pagination-query.dto';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import {
@@ -33,52 +32,41 @@ export class AccountsService {
     private readonly customerPaymentsRepository: Repository<CustomerPayment>,
     @InjectRepository(Expense)
     private readonly expensesRepository: Repository<Expense>,
-    private readonly paginationProvider: PaginationProvider,
     private readonly dataSource: DataSource,
   ) {}
 
   async findAll(paginationQuery: PaginationQueryDto) {
     try {
+      const limit = paginationQuery.limit || 10;
+      const page = paginationQuery.page || 1;
+      const skip = (page - 1) * limit;
+
+      const qb = this.accountsRepository
+        .createQueryBuilder('account')
+        .leftJoinAndSelect('account.createdBy', 'createdBy')
+        .orderBy('account.name', 'ASC');
+
       if (paginationQuery.search) {
-        return await this.searchAccounts(paginationQuery);
+        qb.andWhere(
+          '(account.name ILIKE :search OR account.type ILIKE :search)',
+          { search: `%${paginationQuery.search}%` },
+        );
       }
 
-      return await this.paginationProvider.paginateQuery(
-        paginationQuery,
-        this.accountsRepository,
-        undefined,
-        { createdBy: true },
-        { name: 'ASC' },
-      );
+      const [data, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
+
+      return {
+        data,
+        meta: {
+          itemsPerPage: limit,
+          totalItems,
+          currentPage: page,
+          totalPages: Math.ceil(totalItems / limit),
+        },
+      };
     } catch (error) {
       handleError(error);
     }
-  }
-
-  private async searchAccounts(paginationQuery: PaginationQueryDto) {
-    const limit = paginationQuery.limit || 10;
-    const page = paginationQuery.page || 1;
-    const skip = (page - 1) * limit;
-
-    const qb = this.accountsRepository
-      .createQueryBuilder('account')
-      .leftJoinAndSelect('account.createdBy', 'createdBy')
-      .where('account.name ILIKE :search OR account.type ILIKE :search', {
-        search: `%${paginationQuery.search}%`,
-      })
-      .orderBy('account.name', 'ASC');
-
-    const [data, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
-
-    return {
-      data,
-      meta: {
-        itemsPerPage: limit,
-        totalItems,
-        currentPage: page,
-        totalPages: Math.ceil(totalItems / limit),
-      },
-    };
   }
 
   async findOne(id: number) {
@@ -157,7 +145,15 @@ export class AccountsService {
         );
       }
 
-      // TODO: Also check for historical transactions once the transactions module exists
+      const hasSupplierPayments = await this.supplierPaymentsRepository.count({ where: { accountId: id } });
+      const hasCustomerPayments = await this.customerPaymentsRepository.count({ where: { accountId: id } });
+      const hasExpenses = await this.expensesRepository.count({ where: { accountId: id } });
+      const hasTransfersOut = await this.transfersRepository.count({ where: { fromAccount: { id } } });
+      const hasTransfersIn = await this.transfersRepository.count({ where: { toAccount: { id } } });
+
+      if (hasSupplierPayments || hasCustomerPayments || hasExpenses || hasTransfersOut || hasTransfersIn) {
+        throw new BadRequestException('Cannot delete account with existing transactions');
+      }
 
       await this.accountsRepository.softDelete(id);
 
@@ -307,11 +303,12 @@ export class AccountsService {
       });
 
       return toCsvBuffer(
-        ['Name', 'Type', 'Current Balance'],
+        ['Name', 'Type', 'Opening Balance', 'Current Balance'],
         accounts.map((a) => ({
           'Name': a.name,
           'Type': a.type,
-          'Current Balance': a.currentBalance,
+          'Opening Balance': Number(a.openingBalance),
+          'Current Balance': Number(a.currentBalance),
         })),
       );
     } catch (error) {

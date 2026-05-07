@@ -6,6 +6,7 @@ import { DataTable, type Column } from '@/app/_shared/components/ui/dataTable/da
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
 import { customerPaymentsApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 
 interface CustomerPayment extends Record<string, unknown> {
@@ -59,7 +60,7 @@ export function CustomerPaymentHistoryTab({ customerId }: Props) {
         </button>
       ),
     },
-    { key: 'date', label: 'Date', render: (row) => new Date(row.date).toLocaleDateString() },
+    { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'amount', label: 'Amount Paid', render: (row) => formatPKR(row.amount) },
     { key: 'account', label: 'Account', render: (row) => row.account?.name || '-' },
     { key: 'notes', label: 'Notes', render: (row) => row.notes || '-' },

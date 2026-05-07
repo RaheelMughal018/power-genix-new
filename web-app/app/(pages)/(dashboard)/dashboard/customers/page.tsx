@@ -88,9 +88,11 @@ export default function CustomersPage() {
           <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
             Edit
           </Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteClick(row)}>
-            Delete
-          </Button>
+          {(row as CustomerRow & { canDelete?: boolean }).canDelete && (
+            <Button size="sm" variant="danger" onClick={() => handleDeleteClick(row)}>
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },

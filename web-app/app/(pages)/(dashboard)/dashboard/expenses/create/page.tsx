@@ -6,6 +6,7 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { Spinner } from '@/app/_shared/components/ui/spinner/spinner';
 import { useToast } from '@/app/_shared/components/ui/toast/toast';
 import { expensesApi, expenseCategoriesApi, accountsApi } from '@/app/_shared/lib/api/client';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
@@ -25,7 +26,7 @@ interface ExpenseRow {
 
 const makeRow = (): ExpenseRow => ({
   id: typeof crypto !== 'undefined' ? crypto.randomUUID() : String(Date.now()),
-  date: new Date().toISOString().slice(0, 10),
+  date: toLocalISO(new Date()),
   description: '',
   amount: '',
   categoryId: '',
