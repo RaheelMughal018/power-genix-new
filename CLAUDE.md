@@ -27,7 +27,7 @@ Inventory, production, and sales management ERP for an inverter manufacturing bu
 | Production | `production/` | `production/` | Production batches + units + detail + full edit |
 | Purchase Invoices | `purchase-invoices/` | `purchase-invoices/` | Stock-in from suppliers |
 | Sale Invoices | `sale-invoices/` | `sale-invoices/` | Stock-out to customers + serial tracking |
-| Repair Invoices | `repair-invoices/` | `repair-invoices/` | Repair jobs with custom line items |
+| Repair Invoices | `repair-invoices/` | `repair-invoices/` | Repair jobs (inventory items only, no custom items) |
 | Supplier Payments | `supplier-payments/` | `supplier-payments/` | Payments to suppliers + detail view |
 | Customer Payments | `customer-payments/` | `customer-payments/` | Payments from customers + detail view |
 | Expenses | `expenses/` | `expenses/` | Business expenses |

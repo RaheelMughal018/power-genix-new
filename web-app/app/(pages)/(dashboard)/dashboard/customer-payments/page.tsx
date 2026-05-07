@@ -102,6 +102,11 @@ export default function CustomerPaymentsPage() {
             Add Payment
           </Button>
         }
+        emptyTitle="No customer payments yet"
+        emptyDescription="Add your first customer payment to get started."
+        emptyAction={
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.CUSTOMER_PAYMENT_CREATE)}>Add Payment</Button>
+        }
       />
     </div>
   );

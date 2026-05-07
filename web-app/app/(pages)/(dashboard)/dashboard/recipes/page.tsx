@@ -59,6 +59,11 @@ export default function RecipesPage() {
         actions={
           <Button variant="primary" onClick={() => router.push(ROUTES.RECIPE_CREATE)}>Add Recipe</Button>
         }
+        emptyTitle="No recipes yet"
+        emptyDescription="Add your first recipe to get started."
+        emptyAction={
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.RECIPE_CREATE)}>Add Recipe</Button>
+        }
       />
 
       <ConfirmDialog

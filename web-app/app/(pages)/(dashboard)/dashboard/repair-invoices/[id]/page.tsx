@@ -60,8 +60,8 @@ export default function ViewRepairInvoicePage() {
   if (loading) return <div className="flex justify-center py-12"><Spinner size="lg" /></div>;
   if (!invoice) return <div className="text-center py-12 text-(--color-text-secondary)">Invoice not found.</div>;
 
-  const partsTotal = (invoice.items || []).reduce((sum, li) => sum + li.totalPrice, 0);
-  const laborCost = invoice.isCharged ? (invoice.laborCost || 0) : 0;
+  const partsTotal = (invoice.items || []).reduce((sum, li) => sum + Number(li.totalPrice), 0);
+  const laborCost = invoice.isCharged ? Number(invoice.laborCost || 0) : 0;
 
   return (
     <div className="space-y-8">

@@ -99,6 +99,11 @@ export default function SaleInvoicesPage() {
             Add Sale
           </Button>
         }
+        emptyTitle="No sale invoices yet"
+        emptyDescription="Add your first sale invoice to get started."
+        emptyAction={
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.SALE_INVOICE_CREATE)}>Add Sale</Button>
+        }
       />
     </div>
   );

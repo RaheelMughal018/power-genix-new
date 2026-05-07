@@ -102,6 +102,11 @@ export default function SupplierPaymentsPage() {
             Add Payment
           </Button>
         }
+        emptyTitle="No supplier payments yet"
+        emptyDescription="Add your first supplier payment to get started."
+        emptyAction={
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.SUPPLIER_PAYMENT_CREATE)}>Add Payment</Button>
+        }
       />
     </div>
   );

@@ -122,6 +122,11 @@ export default function RepairInvoicesPage() {
             Add Repair
           </Button>
         }
+        emptyTitle="No repair invoices yet"
+        emptyDescription="Add your first repair invoice to get started."
+        emptyAction={
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.REPAIR_INVOICE_CREATE)}>Add Repair</Button>
+        }
       />
     </div>
   );

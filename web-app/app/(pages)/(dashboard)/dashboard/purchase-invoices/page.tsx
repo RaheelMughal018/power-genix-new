@@ -99,6 +99,11 @@ export default function PurchaseInvoicesPage() {
             Add Purchase
           </Button>
         }
+        emptyTitle="No purchase invoices yet"
+        emptyDescription="Add your first purchase invoice to get started."
+        emptyAction={
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.PURCHASE_INVOICE_CREATE)}>Add Purchase</Button>
+        }
       />
     </div>
   );

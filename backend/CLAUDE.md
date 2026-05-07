@@ -33,7 +33,7 @@ src/
 ├── production/          # Production batches + units + unit items
 ├── purchase-invoices/   # Purchase invoices + line items (stock-in)
 ├── sale-invoices/       # Sale invoices + line items (stock-out, serial tracking)
-├── repair-invoices/     # Repair invoices + line items (custom items supported)
+├── repair-invoices/     # Repair invoices + line items (inventory items only)
 ├── supplier-payments/   # Payments to suppliers
 ├── customer-payments/   # Payments from customers
 ├── expenses/            # Business expenses
@@ -58,7 +58,22 @@ Several modules expose a `GET /:id/detail` endpoint that returns the entity + co
 
 Listing endpoints for suppliers and customers also include computed totals (totalPurchase, totalPaid, due / totalSales, totalRepairs, totalPayments, due) via subqueries.
 
-Statement endpoints (`GET /suppliers/:id/statement`, `GET /customers/:id/statement`) accept optional `from`/`to` query params and return timeline rows with running balances. Each row includes `id` and `type` fields for frontend linking.
+Statement endpoints (`GET /suppliers/:id/statement`, `GET /customers/:id/statement`) accept optional `from`/`to` query params and return timeline rows with running balances. Each row includes `id` and `type` fields for frontend linking. Customer statements include FOC (free of charge) repair invoices as `repair_foc` type — these show the full repair amount but do not affect the running balance.
+
+### Delete Guards
+
+Entities with dependent records cannot be deleted. The following guards are enforced:
+
+| Entity | Blocks deletion if |
+|--------|-------------------|
+| Supplier | Has purchase invoices or payments |
+| Customer | Has sale invoices, repair invoices, or payments |
+| Account | Has any historical transactions (payments, expenses, transfers) |
+| Item | Has purchase/sale/repair invoice line items, or is used in recipes |
+| Expense Category | Has associated expenses |
+| Recipe | Has associated production batches |
+
+Guards return `BadRequestException` with a descriptive message.
 
 ### Stock Validation
 

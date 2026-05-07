@@ -41,7 +41,7 @@ All pages live under `app/(pages)/(dashboard)/dashboard/`:
 | `production/` | Production batches + units |
 | `purchase-invoices/` | Purchase invoices (stock-in) |
 | `sale-invoices/` | Sale invoices (stock-out) |
-| `repair-invoices/` | Repair invoices (custom line items) |
+| `repair-invoices/` | Repair invoices (inventory items only) |
 | `supplier-payments/` | Payments to suppliers |
 | `customer-payments/` | Payments from customers |
 | `expenses/` | Business expenses |
@@ -70,6 +70,22 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 **FilterBar:** Uses `SearchableDropdown` for all filter selects (not native `<select>`).
 
 **Sale Invoice Serial Selection:** When selecting a final product serial, the unit price auto-fills with the production cost. User can override.
+
+**Production BOM Items:** Create and edit pages support dynamic add/remove of BOM items at runtime (not locked to recipe).
+
+### Date Formatting
+
+All date values rendered in tables/lists use `formatDate()` from `@/app/_shared/lib/utils/date` — NOT `new Date(val).toLocaleDateString()`. The utility parses the ISO date string directly to avoid timezone shift bugs.
+
+```typescript
+import { formatDate } from '@/app/_shared/lib/utils/date';
+// In column def:
+cell: ({ row }) => formatDate(row.original.date)
+```
+
+### Dark Mode Tokens
+
+Table section headers use `bg-(--color-bg-secondary)` — never `bg-[var(--color-primary-50)]` which breaks in dark mode.
 
 ---
 

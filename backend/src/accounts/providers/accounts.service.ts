@@ -48,7 +48,7 @@ export class AccountsService {
 
       if (paginationQuery.search) {
         qb.andWhere(
-          '(account.name ILIKE :search OR account.type ILIKE :search)',
+          '(account.name ILIKE :search OR account.type::text ILIKE :search)',
           { search: `%${paginationQuery.search}%` },
         );
       }

@@ -79,6 +79,11 @@ export default function ProductionPage() {
         actions={
           <Button variant="primary" onClick={() => router.push(ROUTES.PRODUCTION_CREATE)}>New Production</Button>
         }
+        emptyTitle="No production batches yet"
+        emptyDescription="Create your first production batch to get started."
+        emptyAction={
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.PRODUCTION_CREATE)}>New Production</Button>
+        }
       />
 
       <ConfirmDialog
