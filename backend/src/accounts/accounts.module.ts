@@ -5,6 +5,7 @@ import { AccountTransfer } from './entities/account-transfer.entity';
 import { SupplierPayment } from '@/supplier-payments/entities/supplier-payment.entity';
 import { CustomerPayment } from '@/customer-payments/entities/customer-payment.entity';
 import { Expense } from '@/expenses/entities/expense.entity';
+import { Asset } from '@/assets/entities/asset.entity';
 import { AccountsController } from './accounts.controller';
 import { AccountsService } from './providers/accounts.service';
 
@@ -16,6 +17,7 @@ import { AccountsService } from './providers/accounts.service';
       SupplierPayment,
       CustomerPayment,
       Expense,
+      Asset,
     ]),
   ],
   controllers: [AccountsController],

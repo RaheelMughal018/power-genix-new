@@ -13,6 +13,7 @@ import { Supplier } from '@/suppliers/entities/supplier.entity';
 import { Customer } from '@/customers/entities/customer.entity';
 import { SupplierPayment } from '@/supplier-payments/entities/supplier-payment.entity';
 import { CustomerPayment } from '@/customer-payments/entities/customer-payment.entity';
+import { Asset } from '@/assets/entities/asset.entity';
 import { handleError } from '@/common/error-handlers/error.handler';
 
 @Injectable()
@@ -42,6 +43,8 @@ export class DashboardService {
     private readonly supplierPaymentRepo: Repository<SupplierPayment>,
     @InjectRepository(CustomerPayment)
     private readonly customerPaymentRepo: Repository<CustomerPayment>,
+    @InjectRepository(Asset)
+    private readonly assetRepo: Repository<Asset>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -58,6 +61,7 @@ export class DashboardService {
         totalAmountToReceive,
         totalCurrentBalance,
         totalProductionCost,
+        totalAssetAmount,
       ] = await Promise.all([
         this.getTotalPurchaseCost(fromDate, toDate),
         this.getTotalExpensesCost(fromDate, toDate),
@@ -69,9 +73,10 @@ export class DashboardService {
         this.getTotalAmountToReceive(),
         this.getTotalCurrentBalance(),
         this.getTotalProductionCost(fromDate, toDate),
+        this.getTotalAssetAmount(),
       ]);
 
-      const overallProfit = totalCurrentBalance + totalAmountToReceive + totalInStockAmount - totalAmountToPay;
+      const overallProfit = totalCurrentBalance + totalAmountToReceive + totalInStockAmount + totalAssetAmount - totalAmountToPay;
 
       return {
         totalPurchaseCost,
@@ -84,6 +89,7 @@ export class DashboardService {
         totalAmountToReceive,
         totalCurrentBalance,
         totalProductionCost,
+        totalAssetAmount,
         overallProfit,
       };
     } catch (error) {
@@ -277,6 +283,15 @@ export class DashboardService {
     if (toDate) qb.andWhere('pb.created_at <= :toDate', { toDate });
 
     const result = await qb.getRawOne<{ total: string }>();
+    return Number(result?.total ?? 0);
+  }
+
+  private async getTotalAssetAmount(): Promise<number> {
+    const result = await this.assetRepo
+      .createQueryBuilder('asset')
+      .where('asset.deletedAt IS NULL')
+      .select('COALESCE(SUM(CAST(asset.amount AS numeric)), 0)', 'total')
+      .getRawOne<{ total: string }>();
     return Number(result?.total ?? 0);
   }
 

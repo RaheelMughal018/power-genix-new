@@ -14,6 +14,7 @@ import { AccountTransfer } from '../entities/account-transfer.entity';
 import { SupplierPayment } from '@/supplier-payments/entities/supplier-payment.entity';
 import { CustomerPayment } from '@/customer-payments/entities/customer-payment.entity';
 import { Expense } from '@/expenses/entities/expense.entity';
+import { Asset } from '@/assets/entities/asset.entity';
 import { CreateAccountDto } from '../dtos/create-account.dto';
 import { UpdateAccountDto } from '../dtos/update-account.dto';
 import { AddOpeningBalanceDto } from '../dtos/add-opening-balance.dto';
@@ -32,6 +33,8 @@ export class AccountsService {
     private readonly customerPaymentsRepository: Repository<CustomerPayment>,
     @InjectRepository(Expense)
     private readonly expensesRepository: Repository<Expense>,
+    @InjectRepository(Asset)
+    private readonly assetsRepository: Repository<Asset>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -243,7 +246,7 @@ export class AccountsService {
         throw new NotFoundException(`Account #${id} not found`);
       }
 
-      const [supplierPayments, customerPayments, expenses, transfersOut, transfersIn] =
+      const [supplierPayments, customerPayments, expenses, transfersOut, transfersIn, assets] =
         await Promise.all([
           this.supplierPaymentsRepository.find({
             where: { accountId: id },
@@ -270,12 +273,17 @@ export class AccountsService {
             relations: { fromAccount: true },
             order: { date: 'DESC' },
           }),
+          this.assetsRepository.find({
+            where: { accountId: id },
+            order: { purchaseDate: 'DESC' },
+          }),
         ]);
 
       const totalOut =
         supplierPayments.reduce((sum, p) => sum + Number(p.amount), 0) +
         expenses.reduce((sum, e) => sum + Number(e.amount), 0) +
-        transfersOut.reduce((sum, t) => sum + Number(t.amount), 0);
+        transfersOut.reduce((sum, t) => sum + Number(t.amount), 0) +
+        assets.reduce((sum, a) => sum + Number(a.amount), 0);
 
       const totalIn =
         customerPayments.reduce((sum, p) => sum + Number(p.amount), 0) +
@@ -290,6 +298,7 @@ export class AccountsService {
         expenses,
         transfersOut,
         transfersIn,
+        assets,
       };
     } catch (error) {
       handleError(error);

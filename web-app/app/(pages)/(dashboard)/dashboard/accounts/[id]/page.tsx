@@ -15,6 +15,7 @@ import { SupplierPaymentsTab } from './supplierPaymentsTab';
 import { CustomerPaymentsTab } from './customerPaymentsTab';
 import { ExpensesTab } from './expensesTab';
 import { TransfersTab } from './transfersTab';
+import { AssetsTab } from './assetsTab';
 
 interface AccountDetail {
   id: number;
@@ -29,6 +30,7 @@ interface AccountDetail {
   expenses: ExpenseRecord[];
   transfersOut: TransferRecord[];
   transfersIn: TransferRecord[];
+  assets: AssetRecord[];
 }
 
 export interface SupplierPaymentRecord {
@@ -65,6 +67,15 @@ export interface TransferRecord {
   notes: string | null;
   fromAccount?: { id: number; name: string };
   toAccount?: { id: number; name: string };
+}
+
+export interface AssetRecord {
+  id: number;
+  name: string;
+  type: string;
+  amount: number;
+  purchaseDate: string;
+  notes: string | null;
 }
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
@@ -143,6 +154,7 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
           <Tabs.Tab id="received">Received ({account.customerPayments.length})</Tabs.Tab>
           <Tabs.Tab id="paid">Paid Out ({account.supplierPayments.length})</Tabs.Tab>
           <Tabs.Tab id="expenses">Expenses ({account.expenses.length})</Tabs.Tab>
+          <Tabs.Tab id="assets">Assets ({account.assets?.length || 0})</Tabs.Tab>
           <Tabs.Tab id="transfers">Transfers ({account.transfersOut.length + account.transfersIn.length})</Tabs.Tab>
         </Tabs.List>
 
@@ -156,6 +168,10 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
 
         <Tabs.Panel id="expenses">
           <ExpensesTab expenses={account.expenses} />
+        </Tabs.Panel>
+
+        <Tabs.Panel id="assets">
+          <AssetsTab assets={account.assets ?? []} />
         </Tabs.Panel>
 
         <Tabs.Panel id="transfers">

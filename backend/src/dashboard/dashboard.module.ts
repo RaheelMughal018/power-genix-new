@@ -14,6 +14,7 @@ import { Supplier } from '@/suppliers/entities/supplier.entity';
 import { Customer } from '@/customers/entities/customer.entity';
 import { SupplierPayment } from '@/supplier-payments/entities/supplier-payment.entity';
 import { CustomerPayment } from '@/customer-payments/entities/customer-payment.entity';
+import { Asset } from '@/assets/entities/asset.entity';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CustomerPayment } from '@/customer-payments/entities/customer-payment.e
       Customer,
       SupplierPayment,
       CustomerPayment,
+      Asset,
     ]),
   ],
   controllers: [DashboardController],

@@ -37,6 +37,7 @@ import { SupplierPaymentsModule } from './supplier-payments/supplier-payments.mo
 import { CustomerPaymentsModule } from './customer-payments/customer-payments.module';
 import { StockAdjustmentsModule } from './stock-adjustments/stock-adjustments.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AssetsModule } from './assets/assets.module';
 import { PdfModule } from './common/pdf/pdf.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -110,6 +111,7 @@ const ENV = process.env.NODE_ENV;
     CustomerPaymentsModule,
     StockAdjustmentsModule,
     DashboardModule,
+    AssetsModule,
     PdfModule,
   ],
   controllers: [AppController],

@@ -35,6 +35,8 @@ export const ROUTES = {
   EXPENSE_CATEGORIES: '/dashboard/expense-categories',
   EXPENSES: '/dashboard/expenses',
   EXPENSE_CREATE: '/dashboard/expenses/create',
+  ASSETS: '/dashboard/assets',
+  ASSET_CREATE: '/dashboard/assets/create',
 } as const;
 
 // Route configuration
@@ -65,6 +67,7 @@ export const PROTECTED_ROUTES = [
   ROUTES.STOCK_ADJUSTMENTS,
   ROUTES.EXPENSE_CATEGORIES,
   ROUTES.EXPENSES,
+  ROUTES.ASSETS,
 ] as const;
 
 export const AUTH_ROUTES = [

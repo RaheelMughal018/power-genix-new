@@ -15,6 +15,7 @@ export interface DashboardSummary {
   totalCurrentBalance: number;
   totalProductionCost: number;
   overallProfit: number;
+  totalAssetAmount: number;
 }
 
 export interface DashboardCharts {

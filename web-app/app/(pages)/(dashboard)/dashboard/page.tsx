@@ -63,6 +63,11 @@ export default function DashboardPage() {
           href: ROUTES.ACCOUNTS,
         },
         {
+          label: 'Total Assets',
+          value: formatPKR(summary.totalAssetAmount),
+          href: ROUTES.ASSETS,
+        },
+        {
           label: 'Overall Profit',
           value: formatPKR(summary.overallProfit),
         },
@@ -81,7 +86,7 @@ export default function DashboardPage() {
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 11 }).map((_, i) => (
+          {Array.from({ length: 12 }).map((_, i) => (
             <div
               key={i}
               className="h-24 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] animate-pulse"

@@ -236,6 +236,20 @@ export const dashboardApi = {
   getCharts: (params?: { from?: string; to?: string }) => apiClient.get('/dashboard/charts', params),
 };
 
+// Assets API
+export const assetsApi = {
+  getAll: (params: { page?: number; limit?: number; search?: string; accountId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/assets', params),
+  getById: (id: number) => apiClient.get(`/assets/${id}`),
+  getTotal: () => apiClient.get('/assets/total'),
+  create: (data: { name: string; type: string; amount: number; purchaseDate: string; accountId: number; notes?: string }) =>
+    apiClient.post('/assets', data),
+  update: (id: number, data: { name?: string; type?: string; amount?: number; purchaseDate?: string; accountId?: number; notes?: string }) =>
+    apiClient.patch(`/assets/${id}`, data),
+  remove: (id: number) => apiClient.delete(`/assets/${id}`),
+  exportCsv: () => apiClient.get('/assets/export/csv'),
+};
+
 // Settings API
 export const settingsApi = {
   getSettings: () => apiClient.get('/settings'),
