@@ -186,9 +186,7 @@ export function CustomerStatementTab({ customerId }: Props) {
                   <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.saleAmount ?? 0)}</td>
                   <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.repairAmount ?? 0)}</td>
                   <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.amountReceived ?? 0)}</td>
-                  <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">
-                    {row.type === 'repair_foc' ? '-' : formatPKR(row.outstandingBalance ?? 0)}
-                  </td>
+                  <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(row.outstandingBalance ?? 0)}</td>
                 </tr>
               ))}
             </tbody>
