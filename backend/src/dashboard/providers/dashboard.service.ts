@@ -210,11 +210,19 @@ export class DashboardService {
       .select('COALESCE(SUM(CAST(sp.amount AS numeric)), 0)', 'total')
       .getRawOne<{ total: string }>();
 
+    const returnsResult = await this.dataSource
+      .createQueryBuilder()
+      .select('COALESCE(SUM(CAST(sa."deductionAmount" AS numeric)), 0)', 'total')
+      .from('stock_adjustment', 'sa')
+      .where('sa."deletedAt" IS NULL AND sa."reason" = :reason', { reason: 'return_to_supplier' })
+      .getRawOne<{ total: string }>();
+
     const totalOpening = Number(suppliersResult?.totalOpening ?? 0);
     const totalPurchases = Number(purchasesResult?.total ?? 0);
     const totalPayments = Number(paymentsResult?.total ?? 0);
+    const totalReturns = Number(returnsResult?.total ?? 0);
 
-    return totalOpening + totalPurchases - totalPayments;
+    return totalOpening + totalPurchases - totalPayments - totalReturns;
   }
 
   private async getTotalAmountToReceive(): Promise<number> {
