@@ -40,6 +40,7 @@ src/
 ├── expense-categories/  # Expense categories
 ├── accounts/            # Financial accounts + account transfers
 ├── sold-inverters/      # Serial-tracked sold inverter registry
+├── assets/              # Business assets (equipment, vehicles, etc.)
 ├── stock-adjustments/   # Manual stock corrections
 ├── settings/            # App settings (company info, etc.)
 ├── app.module.ts        # Root module: ConfigModule, TypeOrmModule, JWT, guards
@@ -68,7 +69,7 @@ Entities with dependent records cannot be deleted. The following guards are enfo
 |--------|-------------------|
 | Supplier | Has purchase invoices, payments, or stock adjustments |
 | Customer | Has sale invoices, repair invoices, or payments |
-| Account | Has any historical transactions (payments, expenses, transfers) |
+| Account | Has any historical transactions (payments, expenses, transfers, assets) |
 | Item | Has purchase/sale/repair invoice line items, or is used in recipes |
 | Expense Category | Has associated expenses |
 | Recipe | Has associated production batches |
@@ -105,10 +106,10 @@ PostgreSQL `ILIKE` does not work on `enum` columns — cast to text first: `colu
 ### Dashboard Overall Profit Formula
 
 ```
-overallProfit = totalCurrentBalance + totalAmountToReceive + totalInStockAmount - totalAmountToPay
+overallProfit = totalCurrentBalance + totalAmountToReceive + totalInStockAmount + totalAssetAmount - totalAmountToPay
 ```
 
-(Accounts balance + Customer receivables + Inventory value − Supplier payables)
+(Accounts balance + Customer receivables + Inventory value + Business assets − Supplier payables)
 
 ### Production Cost Formula
 
@@ -126,6 +127,10 @@ Repair invoice line items accept an optional `unitPrice` (defaults to item's `av
 - Edit: hard-deletes existing units (raw SQL) then recreates — must clear `batch.units = []` before saving batch to prevent TypeORM cascade conflicts
 - Delete: hard-deletes units + items before soft-deleting batch (releases serial numbers for reuse)
 - Serial numbers have a UNIQUE constraint — old units must be fully removed before re-inserting same serials
+
+### Assets
+
+Business assets (equipment, vehicles, furniture, etc.) purchased from financial accounts. On create, `amount` is deducted from the selected account's `currentBalance`. On delete, amount is refunded back. On edit, old deduction is reversed and new deduction applied (handles account changes). Assets are included in the dashboard profit formula as `totalAssetAmount` and show in account detail transaction history under a dedicated "Assets" tab.
 
 ## Conventions
 

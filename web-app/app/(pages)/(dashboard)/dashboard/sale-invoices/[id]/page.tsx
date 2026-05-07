@@ -76,6 +76,8 @@ export default function ViewSaleInvoicePage() {
               setDownloading(true);
               try {
                 await downloadPdf(`/sale-invoices/${id}/pdf`, `${invoice?.invoiceNumber ?? 'SI'}.pdf`);
+              } catch {
+                addToast({ title: 'Error', description: 'Failed to download PDF', variant: 'error' });
               } finally {
                 setDownloading(false);
               }

@@ -9,8 +9,9 @@ import { assetsApi, accountsApi } from '@/app/_shared/lib/api/client';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
+import { formatPKR } from '@/app/_shared/lib/utils/currency';
 
-interface DropdownOption { id: number; name: string; }
+interface AccountOption { id: number; name: string; currentBalance?: number; }
 
 interface AssetDetail {
   id: number;
@@ -43,13 +44,13 @@ export default function EditAssetPage() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [accounts, setAccounts] = useState<DropdownOption[]>([]);
+  const [accounts, setAccounts] = useState<AccountOption[]>([]);
 
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [amount, setAmount] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
-  const [accountId, setAccountId] = useState('');
+  const [accountId, setAccountId] = useState<number | ''>('');
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
@@ -60,14 +61,14 @@ export default function EditAssetPage() {
           assetsApi.getById(id),
         ]);
 
-        setAccounts(unwrapList<DropdownOption>(accRes));
+        setAccounts(unwrapList<AccountOption>(accRes));
 
         const asset = unwrapOne<AssetDetail>(assetRes);
         setName(asset.name || '');
         setType(asset.type || '');
         setAmount(String(asset.amount || ''));
         setPurchaseDate(asset.purchaseDate?.slice(0, 10) || '');
-        setAccountId(String(asset.accountId || asset.account?.id || ''));
+        setAccountId(asset.accountId || asset.account?.id || '');
         setNotes(asset.notes || '');
       } catch {
         addToast({ title: 'Error', description: 'Failed to load asset', variant: 'error' });
@@ -109,6 +110,8 @@ export default function EditAssetPage() {
     }
   };
 
+  const selectedAccount = accounts.find((a) => a.id === accountId);
+
   if (loading) return <div className="flex justify-center py-12"><Spinner size="lg" /></div>;
 
   return (
@@ -118,7 +121,7 @@ export default function EditAssetPage() {
         <Button variant="outline" onClick={() => router.push(`${ROUTES.ASSETS}/${id}`)}>Back</Button>
       </div>
 
-      <div className="bg-(--color-bg-primary) rounded-xl border border-(--color-border) p-6 space-y-4 max-w-2xl">
+      <div className="form-container space-y-4 max-w-2xl mx-auto">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-sm font-medium text-(--color-text-primary)">Name *</label>
@@ -160,14 +163,21 @@ export default function EditAssetPage() {
           <DateInput value={purchaseDate} onChange={setPurchaseDate} label="Purchase Date" required />
         </div>
 
-        <SearchableDropdown
-          label="Account"
-          required
-          value={accountId}
-          onChange={(v) => setAccountId(String(v))}
-          options={accounts.map((a) => ({ value: a.id, label: a.name }))}
-          placeholder="Select account"
-        />
+        <div className="space-y-1">
+          <SearchableDropdown
+            label="Account"
+            required
+            placeholder="Select account"
+            value={accountId}
+            onChange={(v) => setAccountId(Number(v))}
+            options={accounts.map((a) => ({ value: a.id, label: a.name, sublabel: a.currentBalance !== undefined ? `Balance: ${formatPKR(a.currentBalance)}` : undefined }))}
+          />
+          {selectedAccount?.currentBalance !== undefined && (
+            <p className="text-xs text-(--color-text-secondary)">
+              Available balance: {formatPKR(selectedAccount.currentBalance)}
+            </p>
+          )}
+        </div>
 
         <div className="space-y-1">
           <label className="text-sm font-medium text-(--color-text-primary)">Notes</label>
@@ -179,11 +189,11 @@ export default function EditAssetPage() {
             className="w-full px-3 py-2 rounded-lg border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) resize-none"
           />
         </div>
-      </div>
 
-      <div className="flex gap-3">
-        <Button variant="primary" onClick={handleSubmit} isLoading={submitting}>Save Changes</Button>
-        <Button variant="outline" onClick={() => router.push(`${ROUTES.ASSETS}/${id}`)}>Cancel</Button>
+        <div className="flex gap-3 pt-2">
+          <Button variant="primary" onClick={handleSubmit} isLoading={submitting}>Save Changes</Button>
+          <Button variant="outline" onClick={() => router.push(`${ROUTES.ASSETS}/${id}`)}>Cancel</Button>
+        </div>
       </div>
     </div>
   );

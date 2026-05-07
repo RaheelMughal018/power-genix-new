@@ -87,6 +87,8 @@ export default function ViewRepairInvoicePage() {
               setDownloading(true);
               try {
                 await downloadPdf(`/repair-invoices/${id}/pdf`, `${invoice?.invoiceNumber ?? 'RI'}.pdf`);
+              } catch {
+                addToast({ title: 'Error', description: 'Failed to download PDF', variant: 'error' });
               } finally {
                 setDownloading(false);
               }

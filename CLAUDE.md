@@ -32,6 +32,7 @@ Inventory, production, and sales management ERP for an inverter manufacturing bu
 | Customer Payments | `customer-payments/` | `customer-payments/` | Payments from customers + detail view |
 | Expenses | `expenses/` | `expenses/` | Business expenses |
 | Expense Categories | `expense-categories/` | `expense-categories/` | Expense categorization |
+| Assets | `assets/` | `assets/` | Business assets (equipment, vehicles, etc.) purchased from accounts |
 | Accounts | `accounts/` | `accounts/` | Financial accounts + transfers + detail (transactions history) |
 | Sold Inverters | `sold-inverters/` | `sold-inverters/` | Serial-tracked sold inverter registry |
 | Stock Adjustments | `stock-adjustments/` | `stock-adjustments/` | Manual stock corrections |

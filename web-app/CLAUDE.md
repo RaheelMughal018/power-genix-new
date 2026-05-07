@@ -49,6 +49,7 @@ All pages live under `app/(pages)/(dashboard)/dashboard/`:
 | `accounts/` | Financial accounts + transfers |
 | `sold-inverters/` | Sold inverter serial registry |
 | `stock-adjustments/` | Manual stock corrections |
+| `assets/` | Business assets (equipment, vehicles, etc.) |
 | `settings/` | App settings |
 
 Each module typically has: list page, create page, `[id]/` detail page, `[id]/edit/` edit page.
@@ -56,7 +57,7 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 **Detail pages with tabs:**
 - `suppliers/[id]/` — Summary cards + tabs (Purchase History, Payment History, Statement)
 - `customers/[id]/` — Summary cards + tabs (Sale History, Repair History, Payment History, Statement)
-- `accounts/[id]/` — Summary cards + tabs (Received, Paid Out, Expenses, Transfers)
+- `accounts/[id]/` — Summary cards + tabs (Received, Paid Out, Expenses, Assets, Transfers)
 - `supplier-payments/[id]/` — Payment detail view with Edit button
 - `customer-payments/[id]/` — Payment detail view with Edit button
 - `production/[id]/` — Batch info + units breakdown

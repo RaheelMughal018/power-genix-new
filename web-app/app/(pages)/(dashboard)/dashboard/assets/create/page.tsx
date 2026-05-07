@@ -10,8 +10,9 @@ import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
+import { formatPKR } from '@/app/_shared/lib/utils/currency';
 
-interface DropdownOption { id: number; name: string; }
+interface AccountOption { id: number; name: string; currentBalance?: number; }
 
 const unwrapList = <T,>(res: { data: unknown }): T[] => {
   const raw = res.data as { data?: { data: T[] } } & { data: T[] };
@@ -26,20 +27,20 @@ export default function CreateAssetPage() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [accounts, setAccounts] = useState<DropdownOption[]>([]);
+  const [accounts, setAccounts] = useState<AccountOption[]>([]);
 
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [amount, setAmount] = useState('');
   const [purchaseDate, setPurchaseDate] = useState(toLocalISO(new Date()));
-  const [accountId, setAccountId] = useState('');
+  const [accountId, setAccountId] = useState<number | ''>('');
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
     const load = async () => {
       try {
         const accRes = await accountsApi.getAll({ limit: 200 });
-        setAccounts(unwrapList<DropdownOption>(accRes));
+        setAccounts(unwrapList<AccountOption>(accRes));
       } catch {
         addToast({ title: 'Error', description: 'Failed to load accounts', variant: 'error' });
       } finally {
@@ -80,6 +81,8 @@ export default function CreateAssetPage() {
     }
   };
 
+  const selectedAccount = accounts.find((a) => a.id === accountId);
+
   if (loading) return <div className="flex justify-center py-12"><Spinner size="lg" /></div>;
 
   return (
@@ -92,7 +95,7 @@ export default function CreateAssetPage() {
         <Button variant="outline" onClick={() => router.push(ROUTES.ASSETS)}>Back</Button>
       </div>
 
-      <div className="bg-(--color-bg-primary) rounded-xl border border-(--color-border) p-6 space-y-4 max-w-2xl">
+      <div className="form-container space-y-4 max-w-2xl mx-auto">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-sm font-medium text-(--color-text-primary)">Name *</label>
@@ -134,14 +137,21 @@ export default function CreateAssetPage() {
           <DateInput value={purchaseDate} onChange={setPurchaseDate} label="Purchase Date" required />
         </div>
 
-        <SearchableDropdown
-          label="Account"
-          required
-          value={accountId}
-          onChange={(v) => setAccountId(String(v))}
-          options={accounts.map((a) => ({ value: a.id, label: a.name }))}
-          placeholder="Select account"
-        />
+        <div className="space-y-1">
+          <SearchableDropdown
+            label="Account"
+            required
+            placeholder="Select account"
+            value={accountId}
+            onChange={(v) => setAccountId(Number(v))}
+            options={accounts.map((a) => ({ value: a.id, label: a.name, sublabel: a.currentBalance !== undefined ? `Balance: ${formatPKR(a.currentBalance)}` : undefined }))}
+          />
+          {selectedAccount?.currentBalance !== undefined && (
+            <p className="text-xs text-(--color-text-secondary)">
+              Available balance: {formatPKR(selectedAccount.currentBalance)}
+            </p>
+          )}
+        </div>
 
         <div className="space-y-1">
           <label className="text-sm font-medium text-(--color-text-primary)">Notes</label>
@@ -153,15 +163,15 @@ export default function CreateAssetPage() {
             className="w-full px-3 py-2 rounded-lg border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) resize-none"
           />
         </div>
-      </div>
 
-      <div className="flex gap-3">
-        <Button variant="primary" onClick={handleSubmit} isLoading={submitting}>
-          Save Asset
-        </Button>
-        <Button variant="outline" onClick={() => router.push(ROUTES.ASSETS)}>
-          Cancel
-        </Button>
+        <div className="flex gap-3 pt-2">
+          <Button variant="primary" onClick={handleSubmit} isLoading={submitting}>
+            Save Asset
+          </Button>
+          <Button variant="outline" onClick={() => router.push(ROUTES.ASSETS)}>
+            Cancel
+          </Button>
+        </div>
       </div>
     </div>
   );

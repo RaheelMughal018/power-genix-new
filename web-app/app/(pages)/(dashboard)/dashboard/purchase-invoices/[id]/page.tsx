@@ -75,6 +75,8 @@ export default function ViewPurchaseInvoicePage() {
               setDownloading(true);
               try {
                 await downloadPdf(`/purchase-invoices/${id}/pdf`, `${invoice?.invoiceNumber ?? 'PI'}.pdf`);
+              } catch {
+                addToast({ title: 'Error', description: 'Failed to download PDF', variant: 'error' });
               } finally {
                 setDownloading(false);
               }
