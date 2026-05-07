@@ -36,7 +36,7 @@ export class RepairInvoicesService {
 
       if (query.search) {
         qb.andWhere(
-          '(ri.invoiceNumber ILIKE :search OR customer.name ILIKE :search)',
+          '(ri.invoiceNumber ILIKE :search OR customer.name ILIKE :search OR ri.description ILIKE :search)',
           { search: `%${query.search}%` },
         );
       }
@@ -119,7 +119,7 @@ export class RepairInvoicesService {
       for (const lineDto of dto.items) {
         const item = await queryRunner.manager.findOne(Item, { where: { id: lineDto.itemId } });
         if (!item) throw new NotFoundException(`Item #${lineDto.itemId} not found`);
-        const unitPrice = Number(item.averagePrice);
+        const unitPrice = lineDto.unitPrice ?? Number(item.averagePrice);
 
         if (lineDto.isReal) {
           if (Number(item.totalQuantity) < lineDto.quantity) {
@@ -199,7 +199,7 @@ export class RepairInvoicesService {
       for (const lineDto of dto.items) {
         const item = await queryRunner.manager.findOne(Item, { where: { id: lineDto.itemId } });
         if (!item) throw new NotFoundException(`Item #${lineDto.itemId} not found`);
-        const unitPrice = Number(item.averagePrice);
+        const unitPrice = lineDto.unitPrice ?? Number(item.averagePrice);
 
         if (lineDto.isReal) {
           if (Number(item.totalQuantity) < lineDto.quantity) {

@@ -41,7 +41,7 @@ export class SaleInvoicesService {
 
       if (query.search) {
         qb.andWhere(
-          '(si.invoiceNumber ILIKE :search OR customer.name ILIKE :search)',
+          '(si.invoiceNumber ILIKE :search OR customer.name ILIKE :search OR si.notes ILIKE :search)',
           { search: `%${query.search}%` },
         );
       }

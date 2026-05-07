@@ -36,7 +36,7 @@ export class PurchaseInvoicesService {
 
       if (query.search) {
         qb.andWhere(
-          '(pi.invoiceNumber ILIKE :search OR supplier.name ILIKE :search)',
+          '(pi.invoiceNumber ILIKE :search OR supplier.name ILIKE :search OR pi.notes ILIKE :search)',
           { search: `%${query.search}%` },
         );
       }

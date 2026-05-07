@@ -72,7 +72,7 @@ export default function CreateRepairInvoicePage() {
         customerId, description, date, isCharged,
         serialNumber: serialNumber.trim() || undefined,
         laborCost: isCharged && laborCost > 0 ? laborCost : undefined,
-        items: validItems.map((l) => ({ itemId: Number(l.itemId), quantity: l.quantity, isReal: l.isReal })),
+        items: validItems.map((l) => ({ itemId: Number(l.itemId), quantity: l.quantity, unitPrice: l.unitPrice, isReal: l.isReal })),
       });
       addToast({ title: 'Success', description: 'Repair invoice created', variant: 'success' });
       router.push(ROUTES.REPAIR_INVOICES);

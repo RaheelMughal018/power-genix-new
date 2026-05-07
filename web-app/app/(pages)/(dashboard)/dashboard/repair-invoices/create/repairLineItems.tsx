@@ -98,8 +98,9 @@ export function RepairLineItems({
                 </td>
                 <td className="px-3 py-2">
                   <input
-                    type="number" min={0} value={li.unitPrice} readOnly
-                    className="w-full px-2 py-1.5 rounded border border-(--color-border) bg-(--color-bg-secondary) text-(--color-text-secondary) text-sm text-right cursor-not-allowed"
+                    type="number" min={0} value={li.unitPrice}
+                    onChange={(e) => updateRow(li.id, { unitPrice: Number(e.target.value) })}
+                    className={`${cellCls} text-right`}
                   />
                 </td>
                 <td className="px-3 py-2 text-right font-medium text-(--color-text-primary)">{formatPKR(li.totalPrice)}</td>

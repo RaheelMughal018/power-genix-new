@@ -13,10 +13,11 @@ import { ROUTES } from '@/app/_shared/lib/config/routes';
 
 interface StatementRow {
   id: number;
-  type: 'invoice' | 'payment';
+  type: 'invoice' | 'payment' | 'return';
   date: string;
   invoiceNumber: string;
   purchaseAmount: number;
+  returnAmount: number;
   amountPaid: number;
   outstandingBalance: number;
 }
@@ -24,6 +25,7 @@ interface StatementRow {
 interface StatementFooter {
   openingBalance: number;
   totalPurchase: number;
+  totalReturns: number;
   totalPaid: number;
   outstanding: number;
 }
@@ -35,10 +37,11 @@ interface StatementResponse {
 
 interface RawRow {
   id: number;
-  type: 'invoice' | 'payment';
+  type: 'invoice' | 'payment' | 'return';
   'Date': string;
   'Invoice #': string;
   'Purchase Amount': number;
+  'Return Amount': number;
   'Amount Paid': number;
   'Outstanding Balance': number;
 }
@@ -48,6 +51,7 @@ interface RawResponse {
   footer?: {
     'Opening Balance': number;
     'Total Purchase': number;
+    'Total Returns': number;
     'Total Paid': number;
     'Outstanding': number;
   };
@@ -64,12 +68,14 @@ const unwrapStatement = (res: { data: unknown }): StatementResponse => {
     date: r['Date'],
     invoiceNumber: r['Invoice #'],
     purchaseAmount: r['Purchase Amount'],
+    returnAmount: r['Return Amount'] ?? 0,
     amountPaid: r['Amount Paid'],
     outstandingBalance: r['Outstanding Balance'],
   }));
   const footer = raw.footer ? {
     openingBalance: raw.footer['Opening Balance'],
     totalPurchase: raw.footer['Total Purchase'],
+    totalReturns: raw.footer['Total Returns'] ?? 0,
     totalPaid: raw.footer['Total Paid'],
     outstanding: raw.footer['Outstanding'],
   } : undefined;
@@ -145,6 +151,7 @@ export function StatementTab({ supplierId }: Props) {
                 <th className="text-left px-4 py-3 text-(--color-text-secondary) font-medium">Date</th>
                 <th className="text-left px-4 py-3 text-(--color-text-secondary) font-medium">Invoice #</th>
                 <th className="text-right px-4 py-3 text-(--color-text-secondary) font-medium">Purchase Amount</th>
+                <th className="text-right px-4 py-3 text-(--color-text-secondary) font-medium">Return Amount</th>
                 <th className="text-right px-4 py-3 text-(--color-text-secondary) font-medium">Amount Paid</th>
                 <th className="text-right px-4 py-3 text-(--color-text-secondary) font-medium">Outstanding Balance</th>
               </tr>
@@ -156,20 +163,25 @@ export function StatementTab({ supplierId }: Props) {
                     {row.date ? formatDate(row.date) : '-'}
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      className="text-(--color-primary) hover:underline font-medium text-left cursor-pointer"
-                      onClick={() => {
-                        const route = row.type === 'invoice'
-                          ? `${ROUTES.PURCHASE_INVOICES}/${row.id}`
-                          : `${ROUTES.SUPPLIER_PAYMENTS}/${row.id}`;
-                        router.push(route);
-                      }}
-                    >
-                      {row.invoiceNumber || '-'}
-                    </button>
+                    {row.type === 'return' ? (
+                      <span className="text-(--color-text-primary)">{row.invoiceNumber || '-'}</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="text-(--color-primary) hover:underline font-medium text-left cursor-pointer"
+                        onClick={() => {
+                          const route = row.type === 'invoice'
+                            ? `${ROUTES.PURCHASE_INVOICES}/${row.id}`
+                            : `${ROUTES.SUPPLIER_PAYMENTS}/${row.id}`;
+                          router.push(route);
+                        }}
+                      >
+                        {row.invoiceNumber || '-'}
+                      </button>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.purchaseAmount ?? 0)}</td>
+                  <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.returnAmount ?? 0)}</td>
                   <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.amountPaid ?? 0)}</td>
                   <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(row.outstandingBalance ?? 0)}</td>
                 </tr>
@@ -180,6 +192,7 @@ export function StatementTab({ supplierId }: Props) {
                 <tr>
                   <td colSpan={2} className="px-4 py-3 font-semibold text-(--color-text-primary)">Total</td>
                   <td className="px-4 py-3 text-right font-semibold text-(--color-text-primary)">{formatPKR(footer.totalPurchase ?? 0)}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-(--color-text-primary)">{formatPKR(footer.totalReturns ?? 0)}</td>
                   <td className="px-4 py-3 text-right font-semibold text-(--color-text-primary)">{formatPKR(footer.totalPaid ?? 0)}</td>
                   <td className="px-4 py-3 text-right font-bold text-(--color-primary-600)">{formatPKR(footer.outstanding ?? 0)}</td>
                 </tr>

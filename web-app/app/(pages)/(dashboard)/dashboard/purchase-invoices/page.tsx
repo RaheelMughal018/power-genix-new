@@ -36,6 +36,7 @@ export default function PurchaseInvoicesPage() {
     { key: 'supplier', label: 'Supplier', render: (row) => row.supplier?.name || '-' },
     { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'grandTotal', label: 'Amount', render: (row) => formatPKR(row.grandTotal ?? row.totalAmount) },
+    { key: 'notes', label: 'Notes', render: (row) => row.notes || '-' },
     {
       key: 'actions', label: 'Actions', width: '160px',
       render: (row) => (
@@ -51,7 +52,7 @@ export default function PurchaseInvoicesPage() {
     <tr>
       <td colSpan={3} className="px-4 py-3 text-sm font-semibold text-(--color-text-primary)">Total</td>
       <td className="px-4 py-3 text-sm font-bold text-(--color-primary-600)">{formatPKR(totalAmount)}</td>
-      <td />
+      <td colSpan={2} />
     </tr>
   );
 

@@ -21,6 +21,12 @@ export class RepairInvoiceItemDto {
   @Min(1)
   quantity: number;
 
+  @ApiPropertyOptional({ description: 'Override unit price (defaults to item average price)' })
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  unitPrice?: number;
+
   @ApiProperty({ description: 'true = deduct stock + add cost; false = add price only, no stock deduction' })
   @IsBoolean()
   isReal: boolean;

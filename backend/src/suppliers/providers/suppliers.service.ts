@@ -43,6 +43,10 @@ export class SuppliersService {
           'supplier_totalPaid',
         )
         .addSelect(
+          `COALESCE((SELECT SUM(CAST(sa."deductionAmount" AS numeric)) FROM stock_adjustment sa WHERE sa."supplierId" = supplier.id AND sa."reason" = 'return_to_supplier' AND sa."deletedAt" IS NULL), 0)`,
+          'supplier_totalReturns',
+        )
+        .addSelect(
           `CASE WHEN (
             EXISTS(SELECT 1 FROM purchase_invoice pi WHERE pi."supplierId" = supplier.id AND pi."deletedAt" IS NULL)
             OR EXISTS(SELECT 1 FROM supplier_payment sp WHERE sp."supplierId" = supplier.id AND sp."deletedAt" IS NULL)
@@ -66,7 +70,8 @@ export class SuppliersService {
         ...supplier,
         totalPurchase: Number(raw[i]?.supplier_totalPurchase ?? 0),
         totalPaid: Number(raw[i]?.supplier_totalPaid ?? 0),
-        due: Number(supplier.openingBalance) + Number(raw[i]?.supplier_totalPurchase ?? 0) - Number(raw[i]?.supplier_totalPaid ?? 0),
+        totalReturns: Number(raw[i]?.supplier_totalReturns ?? 0),
+        due: Number(supplier.openingBalance) + Number(raw[i]?.supplier_totalPurchase ?? 0) - Number(raw[i]?.supplier_totalPaid ?? 0) - Number(raw[i]?.supplier_totalReturns ?? 0),
         canDelete: raw[i]?.supplier_canDelete === true || raw[i]?.supplier_canDelete === 'true',
       }));
 
@@ -130,14 +135,23 @@ export class SuppliersService {
 
       const totalPaidAmount = Number(paymentResult?.total ?? 0);
 
+      const returnResult = await this.stockAdjustmentRepository
+        .createQueryBuilder('sa')
+        .where('sa.supplierId = :supplierId AND sa.reason = :reason AND sa.deletedAt IS NULL', { supplierId: id, reason: 'return_to_supplier' })
+        .select('COALESCE(SUM(CAST(sa.deductionAmount AS numeric)), 0)', 'total')
+        .getRawOne<{ total: string }>();
+
+      const totalReturnAmount = Number(returnResult?.total ?? 0);
+
       const currentBalance = openingBalance + totalPurchaseAmount;
-      const outstandingBalance = currentBalance - totalPaidAmount;
+      const outstandingBalance = currentBalance - totalPaidAmount - totalReturnAmount;
 
       return {
         ...supplier,
         openingBalance,
         totalPurchaseAmount,
         totalPaidAmount,
+        totalReturnAmount,
         currentBalance,
         outstandingBalance,
       };
@@ -233,21 +247,37 @@ export class SuppliersService {
 
       const payments = await paymentQb.getMany();
 
+      const returnQb = this.stockAdjustmentRepository
+        .createQueryBuilder('sa')
+        .where('sa.supplierId = :id AND sa.reason = :reason AND sa.deletedAt IS NULL', { id, reason: 'return_to_supplier' })
+        .leftJoinAndSelect('sa.item', 'item')
+        .orderBy('sa.date', 'ASC')
+        .addOrderBy('sa.id', 'ASC');
+
+      if (from) returnQb.andWhere('sa.date >= :from', { from });
+      if (to) returnQb.andWhere('sa.date <= :to', { to });
+
+      const returns = await returnQb.getMany();
+
       type Row = {
         date: string;
         invoiceNumber: string;
         purchaseAmount: number;
+        returnAmount: number;
         amountPaid: number;
         balance: number;
       };
 
-      const entries: Array<{ date: string; sortId: number; type: 'invoice' | 'payment'; row: Row }> = [];
+      const entries: Array<{ date: string; sortId: number; type: 'invoice' | 'payment' | 'return'; row: Row }> = [];
 
       for (const inv of invoices) {
-        entries.push({ date: inv.date, sortId: inv.id, type: 'invoice', row: { date: inv.date, invoiceNumber: inv.invoiceNumber, purchaseAmount: Number(inv.totalAmount), amountPaid: 0, balance: 0 } });
+        entries.push({ date: inv.date, sortId: inv.id, type: 'invoice', row: { date: inv.date, invoiceNumber: inv.invoiceNumber, purchaseAmount: Number(inv.totalAmount), returnAmount: 0, amountPaid: 0, balance: 0 } });
       }
       for (const pay of payments) {
-        entries.push({ date: pay.date, sortId: pay.id, type: 'payment', row: { date: pay.date, invoiceNumber: pay.invoiceNumber, purchaseAmount: 0, amountPaid: Number(pay.amount), balance: 0 } });
+        entries.push({ date: pay.date, sortId: pay.id, type: 'payment', row: { date: pay.date, invoiceNumber: pay.invoiceNumber, purchaseAmount: 0, returnAmount: 0, amountPaid: Number(pay.amount), balance: 0 } });
+      }
+      for (const ret of returns) {
+        entries.push({ date: ret.date, sortId: ret.id, type: 'return', row: { date: ret.date, invoiceNumber: ret.item?.name ?? `Return #${ret.id}`, purchaseAmount: 0, returnAmount: Number(ret.deductionAmount ?? 0), amountPaid: 0, balance: 0 } });
       }
 
       entries.sort((a, b) => a.date.localeCompare(b.date) || a.sortId - b.sortId);
@@ -255,11 +285,13 @@ export class SuppliersService {
       const openingBalance = Number(supplier.openingBalance);
       let balance = openingBalance;
       let totalPurchase = 0;
+      let totalReturns = 0;
       let totalPaid = 0;
 
       const rows = entries.map((e) => {
-        balance += e.row.purchaseAmount - e.row.amountPaid;
+        balance += e.row.purchaseAmount - e.row.returnAmount - e.row.amountPaid;
         totalPurchase += e.row.purchaseAmount;
+        totalReturns += e.row.returnAmount;
         totalPaid += e.row.amountPaid;
         return { ...e.row, balance, id: e.sortId, type: e.type };
       });
@@ -267,21 +299,23 @@ export class SuppliersService {
       return {
         supplier: { id: supplier.id, name: supplier.name },
         dateRange: from || to ? { from: from ?? '', to: to ?? '' } : undefined,
-        columns: ['Date', 'Invoice #', 'Purchase Amount', 'Amount Paid', 'Outstanding Balance'],
+        columns: ['Date', 'Invoice #', 'Purchase Amount', 'Return Amount', 'Amount Paid', 'Outstanding Balance'],
         rows: rows.map((r) => ({
           id: r.id,
           type: r.type,
           'Date': r.date,
           'Invoice #': r.invoiceNumber,
           'Purchase Amount': r.purchaseAmount,
+          'Return Amount': r.returnAmount,
           'Amount Paid': r.amountPaid,
           'Outstanding Balance': r.balance,
         })),
         footer: {
           'Opening Balance': openingBalance,
           'Total Purchase': totalPurchase,
+          'Total Returns': totalReturns,
           'Total Paid': totalPaid,
-          'Outstanding': openingBalance + totalPurchase - totalPaid,
+          'Outstanding': openingBalance + totalPurchase - totalReturns - totalPaid,
         },
       };
     } catch (error) {
