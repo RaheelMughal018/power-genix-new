@@ -289,28 +289,37 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
       )}
 
       <div className="p-4 bg-(--color-bg-secondary) rounded-lg border border-(--color-border) space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-(--color-text-secondary)">Materials per unit</span>
-          <span className="text-(--color-text-primary)">{formatPKR(units[0]?.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0) || 0)}</span>
-        </div>
-        {recipeExpense > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-(--color-text-secondary)">Recipe expense (per unit)</span>
-            <span className="text-(--color-text-primary)">{formatPKR(recipeExpense)}</span>
-          </div>
-        )}
-        <div className="flex justify-between text-sm">
-          <span className="text-(--color-text-secondary)">Copper per unit</span>
-          <span className="text-(--color-text-primary)">{formatPKR(copperPerUnit)}</span>
-        </div>
-        <div className="flex justify-between text-sm border-t border-(--color-border) pt-2">
-          <span className="text-(--color-text-secondary)">Cost per unit</span>
-          <span className="font-semibold text-(--color-text-primary)">{formatPKR(unitCosts[0] || 0)}</span>
-        </div>
-        <div className="flex justify-between items-baseline border-t border-(--color-border) pt-2">
-          <span className="font-semibold text-(--color-text-primary)">Total Batch Cost</span>
-          <span className="text-2xl font-bold text-(--color-primary-600)">{formatPKR(totalCost)}</span>
-        </div>
+        {(() => {
+          const totalMaterials = units.reduce((s, u) => s + u.items.reduce((si, i) => si + i.quantity * i.unitPrice, 0), 0);
+          const avgMaterials = quantity > 0 ? totalMaterials / quantity : 0;
+          const avgCost = quantity > 0 ? totalCost / quantity : 0;
+          return (
+            <>
+              <div className="flex justify-between text-sm">
+                <span className="text-(--color-text-secondary)">Avg materials per unit</span>
+                <span className="text-(--color-text-primary)">{formatPKR(avgMaterials)}</span>
+              </div>
+              {recipeExpense > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-(--color-text-secondary)">Recipe expense (per unit)</span>
+                  <span className="text-(--color-text-primary)">{formatPKR(recipeExpense)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-(--color-text-secondary)">Copper per unit</span>
+                <span className="text-(--color-text-primary)">{formatPKR(copperPerUnit)}</span>
+              </div>
+              <div className="flex justify-between text-sm border-t border-(--color-border) pt-2">
+                <span className="text-(--color-text-secondary)">Avg cost per unit</span>
+                <span className="font-semibold text-(--color-text-primary)">{formatPKR(avgCost)}</span>
+              </div>
+              <div className="flex justify-between items-baseline border-t border-(--color-border) pt-2">
+                <span className="font-semibold text-(--color-text-primary)">Total Batch Cost</span>
+                <span className="text-2xl font-bold text-(--color-primary-600)">{formatPKR(totalCost)}</span>
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       <div className="flex gap-3">

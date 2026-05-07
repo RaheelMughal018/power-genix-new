@@ -15,7 +15,6 @@ interface InvoiceItem {
   item: { id: number; name: string };
   quantity: number;
   unitPrice: number;
-  totalPrice: number;
   isReal: boolean;
 }
 
@@ -60,7 +59,7 @@ export default function ViewRepairInvoicePage() {
   if (loading) return <div className="flex justify-center py-12"><Spinner size="lg" /></div>;
   if (!invoice) return <div className="text-center py-12 text-(--color-text-secondary)">Invoice not found.</div>;
 
-  const partsTotal = (invoice.items || []).reduce((sum, li) => sum + Number(li.totalPrice), 0);
+  const partsTotal = (invoice.items || []).reduce((sum, li) => sum + Number(li.quantity) * Number(li.unitPrice), 0);
   const laborCost = invoice.isCharged ? Number(invoice.laborCost || 0) : 0;
 
   return (
@@ -154,7 +153,7 @@ export default function ViewRepairInvoicePage() {
                 <td className="px-4 py-3 text-(--color-text-primary)">{li.item?.name || '-'}</td>
                 <td className="px-4 py-3 text-right text-(--color-text-primary)">{li.quantity}</td>
                 <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(li.unitPrice)}</td>
-                <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(li.totalPrice)}</td>
+                <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(Number(li.quantity) * Number(li.unitPrice))}</td>
                 <td className="px-4 py-3 text-center">
                   <span className={['text-xs font-medium px-2 py-0.5 rounded-full', li.isReal ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'].join(' ')}>
                     {li.isReal ? 'Yes' : 'No'}

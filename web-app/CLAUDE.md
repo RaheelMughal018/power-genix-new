@@ -73,7 +73,13 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 
 **Repair Invoice Unit Price:** Auto-fills with item's average price on selection, but user can override for markup/profit. Both create and edit send `unitPrice` to the backend.
 
-**Production BOM Items:** Create and edit pages support dynamic add/remove of BOM items at runtime (not locked to recipe).
+**Production BOM Items:** Create and edit pages support dynamic add/remove of BOM items at runtime (not locked to recipe). Each unit can have different items/quantities when using "Edit Individual" mode.
+
+**Production Detail BOM:** The Bill of Materials table on the detail page shows total materials aggregated from actual production unit items (NOT from the recipe). "Avg Cost / Unit" is shown in the header since units can differ. Each unit's individual cost and item breakdown is shown in the Production Units section.
+
+**Production Edit Cost Summary:** The cost summary shows averages across all units (not just unit[0]) and updates in real-time as items are edited.
+
+**Repair Invoice Line Totals:** `RepairInvoiceItem` has no `totalPrice` column — compute as `quantity × unitPrice` client-side.
 
 **Empty States:** All list pages must pass `emptyTitle`, `emptyDescription`, and `emptyAction` props to `DataTable` for when data is empty.
 

@@ -199,7 +199,12 @@ This is where you manufacture inverters. When you create a production batch, you
 6. **Add notes** if needed
 7. **Save** — the batch is saved as "Pending"
 
-**Real-time cost display:** As you make changes, the system calculates and shows the cost in real time.
+**Real-time cost display:** As you make changes, the system calculates and shows the cost in real time — both on create and edit pages. Each unit gets its own cost based on its specific materials. The summary shows average cost per unit and the total batch cost.
+
+**Viewing a production batch:** The detail page shows:
+- Batch info (recipe, final product, quantity, status, total cost, average cost per unit, copper, recipe expense)
+- **Bill of Materials** — the total materials actually consumed across all units (aggregated from production data, not the recipe). Each unit's individual breakdown is shown separately below.
+- **Production Units** — each unit with its serial number, individual cost, and item-by-item breakdown
 
 **Production statuses:**
 - **Pending** — saved but not yet finalized. You can still edit or delete it.
@@ -274,6 +279,7 @@ A Repair Invoice is created when a customer brings in a product (usually an inve
 - Add parts used — for each part, you specify:
   - Which item from your stock
   - How many were used
+  - The unit price — this auto-fills with the item's average price, but you can change it (for example, to add a markup for profit)
   - Whether the stock should actually be reduced ("Is Real"):
     - **Yes (Real):** The part is taken from your stock and the quantity is reduced
     - **No (Not Real):** The part's price is added to the invoice for billing purposes, but no stock is removed (useful when using parts not tracked in your inventory)

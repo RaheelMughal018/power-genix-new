@@ -112,9 +112,13 @@ overallProfit = totalCurrentBalance + totalAmountToReceive + totalInStockAmount 
 
 ### Production Cost Formula
 
-Per unit cost = material items cost + copper amount / quantity + recipe additional expense (per unit, NOT divided)
+Per unit cost = unit's material items cost + copper amount / quantity + recipe additional expense (per unit, NOT divided)
 
-The recipe's `additionalExpense` is added to EACH unit (flat per-unit overhead). Only copper is divided across units.
+Each unit gets its own cost based on its specific items — units in the same batch can have different materials and different costs. The recipe's `additionalExpense` is added to EACH unit (flat per-unit overhead). Only copper is divided across units. Batch `totalCost` = sum of all unit costs.
+
+### Repair Invoice Unit Price
+
+Repair invoice line items accept an optional `unitPrice` (defaults to item's `averagePrice` if not provided). This allows charging a markup on repair parts. The `RepairInvoiceItem` entity stores `unitPrice` and `quantity` but NOT `totalPrice` — total is computed as `quantity × unitPrice` where needed (PDF controller, frontend).
 
 ### Production Edit/Delete
 
