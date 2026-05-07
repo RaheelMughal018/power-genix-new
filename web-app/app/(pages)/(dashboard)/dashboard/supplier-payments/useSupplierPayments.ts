@@ -79,7 +79,7 @@ export function useSupplierPayments() {
       setPayments(list);
       setTotalPages(resData.meta?.totalPages ?? 1);
       setTotalItems(resData.meta?.totalItems ?? 0);
-      setTotalAmount(list.reduce((sum, p) => sum + (p.amount ?? 0), 0));
+      setTotalAmount(list.reduce((sum, p) => sum + Number(p.amount ?? 0), 0));
     } catch {
       addToast({ title: 'Error', description: 'Failed to load supplier payments', variant: 'error' });
     } finally {

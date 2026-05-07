@@ -71,7 +71,13 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 
 **Sale Invoice Serial Selection:** When selecting a final product serial, the unit price auto-fills with the production cost. User can override.
 
+**Repair Invoice Unit Price:** Auto-fills with item's average price on selection, but user can override for markup/profit. Both create and edit send `unitPrice` to the backend.
+
 **Production BOM Items:** Create and edit pages support dynamic add/remove of BOM items at runtime (not locked to recipe).
+
+**Empty States:** All list pages must pass `emptyTitle`, `emptyDescription`, and `emptyAction` props to `DataTable` for when data is empty.
+
+**Invoice Notes Column:** Purchase and sale invoice listings include a "Notes" column. Search queries also match against notes.
 
 ### Date Formatting
 
@@ -82,6 +88,10 @@ import { formatDate } from '@/app/_shared/lib/utils/date';
 // In column def:
 cell: ({ row }) => formatDate(row.original.date)
 ```
+
+### Decimal Column Coercion
+
+PostgreSQL `decimal` columns arrive as strings via TypeORM. Always wrap in `Number()` when doing arithmetic — especially in `.reduce()` calls. Without `Number()`, `sum + li.totalPrice` does string concatenation instead of addition.
 
 ### Dark Mode Tokens
 

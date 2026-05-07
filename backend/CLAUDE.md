@@ -52,13 +52,13 @@ Several modules expose a `GET /:id/detail` endpoint that returns the entity + co
 
 | Module | Endpoint | Returns |
 |--------|----------|---------|
-| Suppliers | `GET /suppliers/:id/detail` | Supplier + totalPurchaseAmount, totalPaidAmount, outstandingBalance, currentBalance |
+| Suppliers | `GET /suppliers/:id/detail` | Supplier + totalPurchaseAmount, totalPaidAmount, totalReturnAmount, outstandingBalance, currentBalance |
 | Customers | `GET /customers/:id/detail` | Customer + totalSaleAmount, totalRepairAmount, totalPaymentReceived, outstandingBalance, currentBalance |
 | Accounts | `GET /accounts/:id/detail` | Account + totalIn, totalOut, supplierPayments[], customerPayments[], expenses[], transfersOut[], transfersIn[] |
 
-Listing endpoints for suppliers and customers also include computed totals (totalPurchase, totalPaid, due / totalSales, totalRepairs, totalPayments, due) via subqueries.
+Listing endpoints for suppliers and customers also include computed totals via subqueries. Supplier outstanding: `opening + purchases - payments - returns`. Customer outstanding: `opening + sales + repairs - payments`.
 
-Statement endpoints (`GET /suppliers/:id/statement`, `GET /customers/:id/statement`) accept optional `from`/`to` query params and return timeline rows with running balances. Each row includes `id` and `type` fields for frontend linking. Customer statements include FOC (free of charge) repair invoices as `repair_foc` type — these show the full repair amount but do not affect the running balance.
+Statement endpoints (`GET /suppliers/:id/statement`, `GET /customers/:id/statement`) accept optional `from`/`to` query params and return timeline rows with running balances. Each row includes `id` and `type` fields for frontend linking. Customer statements include FOC (free of charge) repair invoices as `repair_foc` type — these show the full repair amount but do not affect the running balance (Outstanding Balance column shows "-" for FOC rows). Supplier statements include return-to-supplier stock adjustments as `return` type with a "Return Amount" column — returns reduce the supplier's outstanding balance.
 
 ### Delete Guards
 
@@ -66,7 +66,7 @@ Entities with dependent records cannot be deleted. The following guards are enfo
 
 | Entity | Blocks deletion if |
 |--------|-------------------|
-| Supplier | Has purchase invoices or payments |
+| Supplier | Has purchase invoices, payments, or stock adjustments |
 | Customer | Has sale invoices, repair invoices, or payments |
 | Account | Has any historical transactions (payments, expenses, transfers) |
 | Item | Has purchase/sale/repair invoice line items, or is used in recipes |
@@ -82,6 +82,7 @@ All stock-deducting operations validate available quantity before proceeding:
 - Repair invoices: Same check when `isReal = true`
 - Production: `checkStockSufficiency()` validates all recipe items
 - Stock adjustments (deduct): Validates quantity available
+- Stock adjustments (return_to_supplier): Deducts stock and reduces supplier outstanding by `qty × averagePrice`
 
 ### Weighted Average Price
 
@@ -90,6 +91,12 @@ Items track `averagePrice` using the weighted average formula: `(oldQty × oldAv
 - Stock adjustment (add type only, with unitPrice)
 
 On deductions (sale, repair, production), only `totalQuantity` decreases — `averagePrice` is preserved. When qty reaches 0 and new stock arrives, avg resets to the new price naturally.
+
+Repair invoices accept an optional `unitPrice` per line item (defaults to item's `averagePrice` if not provided). This allows charging a markup on repair parts. Sale and purchase invoices require `unitPrice` explicitly.
+
+### Search on Enum Columns
+
+PostgreSQL `ILIKE` does not work on `enum` columns — cast to text first: `column::text ILIKE :search`.
 
 ### Global Response Interceptor
 

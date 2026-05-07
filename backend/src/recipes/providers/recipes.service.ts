@@ -286,7 +286,7 @@ export class RecipesService {
 
   private computeTotalCost(recipe: Recipe): number {
     const materialCost = recipe.recipeItems.reduce((sum, ri) => {
-      return sum + ri.quantity * Number(ri.item.averagePrice);
+      return sum + ri.quantity * Number(ri.item?.averagePrice ?? 0);
     }, 0);
 
     return materialCost + Number(recipe.additionalExpense);
