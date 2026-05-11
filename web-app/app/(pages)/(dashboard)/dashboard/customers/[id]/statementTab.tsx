@@ -157,6 +157,18 @@ export function CustomerStatementTab({ customerId }: Props) {
               </tr>
             </thead>
             <tbody>
+              {footer && (
+                <tr className="bg-(--color-bg-secondary)/30">
+                  <td className="px-4 py-3 text-(--color-text-primary) italic">
+                    {dateRange?.from ? formatDate(dateRange.from) : '-'}
+                  </td>
+                  <td className="px-4 py-3 font-medium text-(--color-text-primary)">Opening Balance</td>
+                  <td className="px-4 py-3 text-right text-(--color-text-secondary)">-</td>
+                  <td className="px-4 py-3 text-right text-(--color-text-secondary)">-</td>
+                  <td className="px-4 py-3 text-right text-(--color-text-secondary)">-</td>
+                  <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(footer.openingBalance ?? 0)}</td>
+                </tr>
+              )}
               {rows.map((row, i) => (
                 <tr key={i} className="border-t border-(--color-border)">
                   <td className="px-4 py-3 text-(--color-text-primary)">
