@@ -44,9 +44,9 @@ export default function SoldInvertersPage() {
       ),
     },
     {
-      key: 'itemName',
+      key: 'item',
       label: 'Item Name',
-      render: (row) => row.itemName ?? '—',
+      render: (row) => row.item?.name ?? '—',
     },
     {
       key: 'customer',

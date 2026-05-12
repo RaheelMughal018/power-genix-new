@@ -13,7 +13,7 @@ export interface CustomerOption extends Record<string, unknown> {
 export interface SoldInverter extends Record<string, unknown> {
   id: number;
   serialNumber: string;
-  itemName: string;
+  item: { id: number; name: string };
   customer: { id: number; name: string };
   productionCost: number;
   saleCost: number;
