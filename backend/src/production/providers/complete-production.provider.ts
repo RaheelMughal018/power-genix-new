@@ -51,11 +51,24 @@ export class CompleteProductionProvider {
       }
 
       const finalProductId = batch.recipe.finalProduct.id;
-      await queryRunner.manager.increment(
+      const finalProduct = await queryRunner.manager.findOne(Item, {
+        where: { id: finalProductId },
+      });
+
+      if (!finalProduct) {
+        throw new NotFoundException(`Final product item #${finalProductId} not found`);
+      }
+
+      const oldQty = Number(finalProduct.totalQuantity);
+      const oldAvg = Number(finalProduct.averagePrice);
+      const batchCost = Number(batch.totalCost);
+      const newQty = oldQty + batch.quantity;
+      const newAvg = newQty > 0 ? (oldQty * oldAvg + batchCost) / newQty : 0;
+
+      await queryRunner.manager.update(
         Item,
         { id: finalProductId },
-        'totalQuantity',
-        batch.quantity,
+        { totalQuantity: newQty, averagePrice: newAvg },
       );
 
       batch.status = ProductionStatus.COMPLETED;
