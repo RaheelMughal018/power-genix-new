@@ -39,6 +39,7 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
   const [notes, setNotes] = useState('');
   const [units, setUnits] = useState<Unit[]>([]);
   const [editMode, setEditMode] = useState<'batch' | 'individual'>('batch');
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
 
   const unwrap = <T,>(res: { data: unknown }): T[] => {
     const raw = res.data as { data?: { data: T[] } } & { data: T[] };
@@ -139,6 +140,28 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
     setUnits(updated);
   };
 
+  const refreshPrices = async () => {
+    if (units.length === 0) return;
+    setRefreshingPrices(true);
+    try {
+      const rmRes = await itemsApi.getAll({ limit: 200, type: 'raw_material' });
+      const fresh = unwrap<RawMaterial>(rmRes);
+      setRawMaterials(fresh);
+      setUnits(units.map((unit) => ({
+        ...unit,
+        items: unit.items.map((item) => {
+          const mat = fresh.find((m) => m.id === item.itemId);
+          return mat ? { ...item, unitPrice: Number(mat.averagePrice) || 0 } : item;
+        }),
+      })));
+      addToast({ title: 'Prices refreshed', description: 'Updated to latest average prices', variant: 'success' });
+    } catch {
+      addToast({ title: 'Error', description: 'Failed to refresh prices', variant: 'error' });
+    } finally {
+      setRefreshingPrices(false);
+    }
+  };
+
   const quantity = batch?.quantity || 0;
   const recipeExpense = Number(batch?.recipe?.additionalExpense) || 0;
   const copperPerUnit = quantity > 0 ? copperAmount / quantity : 0;
@@ -204,11 +227,12 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
 
       {units.length > 0 && (
         <div className="bg-(--color-bg-primary) border border-(--color-border) rounded-xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <h2 className="text-base font-semibold text-(--color-text-primary)">Units ({units.length})</h2>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button size="sm" variant={editMode === 'batch' ? 'primary' : 'outline'} onClick={() => setEditMode('batch')}>Edit All</Button>
               <Button size="sm" variant={editMode === 'individual' ? 'primary' : 'outline'} onClick={() => setEditMode('individual')}>Edit Individual</Button>
+              <Button size="sm" variant="outline" onClick={refreshPrices} isLoading={refreshingPrices}>Refresh Prices</Button>
             </div>
           </div>
 

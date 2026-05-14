@@ -113,6 +113,7 @@ export const productionApi = {
   }) => apiClient.post('/production', data),
   complete: (id: number) => apiClient.post(`/production/${id}/complete`),
   cancel: (id: number) => apiClient.post(`/production/${id}/cancel`),
+  refreshPrices: (id: number) => apiClient.post(`/production/${id}/refresh-prices`),
   update: (id: number, data: object) => apiClient.patch(`/production/${id}`, data),
   remove: (id: number) => apiClient.delete(`/production/${id}`),
   exportCsv: () => apiClient.get('/production/export/csv'),

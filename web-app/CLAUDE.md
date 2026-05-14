@@ -76,6 +76,13 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 
 **Production BOM Items:** Create and edit pages support dynamic add/remove of BOM items at runtime (not locked to recipe). Each unit can have different items/quantities when using "Edit Individual" mode.
 
+**Production Serial Number Format:** Prefix shown is the configured business serial prefix only (e.g. `LEH-`). User enters the full postfix `YYYY-NNN` (e.g. `2026-001`, `2022-009`) — year is editable, sequence is free-format (no auto-padding). Backend `generateSerials` still suggests `LEH-<currentYear>-<nextSeq>` as a default which the user can edit.
+
+**Production Refresh Prices (frontend):**
+- **Create page:** "Refresh Prices" button refetches raw materials and overwrites every unit item's `unitPrice` with the current `averagePrice`. Use after editing stock adjustments mid-flow so the BOM picks up the latest costs.
+- **Detail page (pending):** If any stored `unitPrice` differs from the item's current `averagePrice`, the "Complete" action is replaced by "Refresh Prices" and a warning banner is shown. Refresh calls `POST /production/:id/refresh-prices`, which updates unit prices + recomputes `unitCost` and batch `totalCost`. After refresh, Complete reappears.
+- **Edit page:** "Refresh Prices" button next to the edit-mode toggles overwrites every BOM line with the current `averagePrice` (does not call the backend — saved on Save Changes).
+
 **Production Detail BOM:** The Bill of Materials table on the detail page shows total materials aggregated from actual production unit items (NOT from the recipe). "Avg Cost / Unit" is shown in the header since units can differ. Each unit's individual cost and item breakdown is shown in the Production Units section.
 
 **Production Edit Cost Summary:** The cost summary shows averages across all units (not just unit[0]) and updates in real-time as items are edited.
@@ -103,6 +110,8 @@ PostgreSQL `decimal` columns arrive as strings via TypeORM. Always wrap in `Numb
 ### Dark Mode Tokens
 
 Table section headers use `bg-(--color-bg-secondary)` — never `bg-[var(--color-primary-50)]` which breaks in dark mode.
+
+Semantic surface tokens (`--color-warning-*`, `--color-success-*`, `--color-error-*`, `--color-info-*`) have dark-mode overrides in `app/globals.css` (`.dark { ... }`). In dark mode the `-50` variants are translucent (`rgba(..., 0.12)`) and the `-500` / `-600` shades are lightened for contrast on dark surfaces. Use these tokens directly (e.g. `bg-(--color-warning-50) text-(--color-warning-600) border-(--color-warning-500)`) instead of hard-coded Tailwind palette colors so banners adapt automatically.
 
 ---
 

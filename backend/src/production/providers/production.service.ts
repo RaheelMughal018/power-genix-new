@@ -19,6 +19,7 @@ import { ProductionStatus } from '../enums/production-status.enum';
 import { CompleteProductionProvider } from './complete-production.provider';
 import { CreateProductionProvider } from './create-production.provider';
 import { ProductionSerialProvider } from './production-serial.provider';
+import { RefreshPricesProvider } from './refresh-prices.provider';
 
 @Injectable()
 export class ProductionService {
@@ -29,6 +30,7 @@ export class ProductionService {
     private readonly createProvider: CreateProductionProvider,
     private readonly completeProvider: CompleteProductionProvider,
     private readonly serialProvider: ProductionSerialProvider,
+    private readonly refreshPricesProvider: RefreshPricesProvider,
   ) {}
 
   async findAll(paginationQuery: PaginationQueryDto) {
@@ -112,6 +114,16 @@ export class ProductionService {
   async complete(id: number) {
     try {
       return await this.completeProvider.complete(id);
+    } catch (error) {
+      handleError(error);
+    }
+  }
+
+  async refreshPrices(id: number) {
+    try {
+      const result = await this.refreshPricesProvider.refresh(id);
+      const batch = await this.findOne(id);
+      return { ...result, batch };
     } catch (error) {
       handleError(error);
     }

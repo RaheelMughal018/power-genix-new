@@ -106,6 +106,15 @@ export class ProductionController {
     return await this.productionService.cancel(id);
   }
 
+  @ApiOperation({ summary: 'Refresh unit item prices from current item average prices (PENDING only)' })
+  @ApiResponse({ status: 200, description: 'Prices refreshed and totals recomputed' })
+  @ApiResponse({ status: 400, description: 'Batch not in PENDING status' })
+  @ApiParam({ name: 'id', type: Number })
+  @Post(':id/refresh-prices')
+  async refreshPrices(@Param('id', ParseIntPipe) id: number) {
+    return await this.productionService.refreshPrices(id);
+  }
+
   @ApiOperation({ summary: 'Update a production batch (PENDING only)' })
   @ApiResponse({ status: 200, description: 'Batch updated' })
   @ApiBody({ type: UpdateProductionDto })

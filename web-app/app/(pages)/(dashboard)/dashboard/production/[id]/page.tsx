@@ -13,7 +13,7 @@ import { formatPKR } from '@/app/_shared/lib/utils/currency';
 
 interface BomAggRow { itemId: number; itemName: string; unit: string; totalQty: number; unitPrice: number; }
 interface RecipeItem { id: number; item: { id: number; name: string; averagePrice: number; unit: string }; quantity: number; }
-interface UnitItem { id: number; item: { id: number; name: string; unit?: string }; quantity: number; unitPrice: number; }
+interface UnitItem { id: number; item: { id: number; name: string; unit?: string; averagePrice?: number }; quantity: number; unitPrice: number; }
 interface Unit { id: number; serialNumber: string; unitCost: number; productionUnitItems: UnitItem[]; items?: UnitItem[]; }
 interface BatchDetail {
   id: number; batchNumber: string; quantity: number; status: string;
@@ -48,6 +48,18 @@ function aggregateBomItems(units: Unit[]): BomAggRow[] {
   return Array.from(map.values());
 }
 
+function hasPriceMismatch(units: Unit[]): boolean {
+  for (const unit of units) {
+    for (const ui of (unit.productionUnitItems || unit.items || [])) {
+      const current = Number(ui.item?.averagePrice ?? NaN);
+      if (!Number.isNaN(current) && current !== Number(ui.unitPrice)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 export default function ProductionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -57,21 +69,24 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
   const [isCompleting, setIsCompleting] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isRefreshingPrices, setIsRefreshingPrices] = useState(false);
   const [shortfall, setShortfall] = useState<Array<{ itemName: string; required: number; available: number }>>([]);
 
+  const fetchBatch = async () => {
+    try {
+      const res = await productionApi.getById(Number(id));
+      const raw = res.data as { data?: BatchDetail } & BatchDetail;
+      setBatch((raw.data || raw) as BatchDetail);
+    } catch {
+      addToast({ title: 'Error', description: 'Failed to load batch', variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const res = await productionApi.getById(Number(id));
-        const raw = res.data as { data?: BatchDetail } & BatchDetail;
-        setBatch((raw.data || raw) as BatchDetail);
-      } catch {
-        addToast({ title: 'Error', description: 'Failed to load batch', variant: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
+    fetchBatch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleComplete = async () => {
@@ -92,6 +107,25 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
       addToast({ title: 'Error', description: 'Failed to complete batch', variant: 'error' });
     } finally {
       setIsCompleting(false);
+    }
+  };
+
+  const handleRefreshPrices = async () => {
+    setIsRefreshingPrices(true);
+    try {
+      const res = await productionApi.refreshPrices(Number(id));
+      const raw = res.data as { data?: { message?: string; updatedItems?: number } } & { message?: string; updatedItems?: number };
+      const result = raw.data || raw;
+      addToast({
+        title: 'Prices Refreshed',
+        description: result.message || 'Updated to latest average prices',
+        variant: 'success',
+      });
+      await fetchBatch();
+    } catch {
+      addToast({ title: 'Error', description: 'Failed to refresh prices', variant: 'error' });
+    } finally {
+      setIsRefreshingPrices(false);
     }
   };
 
@@ -116,6 +150,7 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
   const recipeExpense = Number(batch.recipe?.additionalExpense) || 0;
   const costPerUnit = batch.quantity > 0 ? batch.totalCost / batch.quantity : 0;
   const allUnits = batch.productionUnits || batch.units || [];
+  const pricesStale = batch.status === 'pending' && hasPriceMismatch(allUnits);
 
   return (
     <div className="space-y-6">
@@ -127,7 +162,11 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
         <div className="flex gap-2 flex-wrap">
           {batch.status === 'pending' && (
             <>
-              <Button variant="primary" onClick={handleComplete} isLoading={isCompleting}>Complete</Button>
+              {pricesStale ? (
+                <Button variant="primary" onClick={handleRefreshPrices} isLoading={isRefreshingPrices}>Refresh Prices</Button>
+              ) : (
+                <Button variant="primary" onClick={handleComplete} isLoading={isCompleting}>Complete</Button>
+              )}
               <Button variant="outline" onClick={() => router.push(`${ROUTES.PRODUCTION}/${batch.id}/edit`)}>Edit</Button>
               <Button variant="danger" onClick={() => setIsCancelOpen(true)}>Cancel Batch</Button>
             </>
@@ -190,6 +229,15 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
           <p className="font-medium text-(--color-text-primary)">{new Date(batch.created_at).toLocaleDateString()}</p>
         </div>
       </div>
+
+      {pricesStale && (
+        <div className="p-4 rounded-lg border border-(--color-warning-500) bg-(--color-warning-50)">
+          <h3 className="font-semibold text-(--color-warning-600) mb-1">Prices Out of Date</h3>
+          <p className="text-sm text-(--color-warning-600)">
+            One or more raw material average prices have changed since this batch was created. Refresh prices before completing the batch so the production cost reflects current values.
+          </p>
+        </div>
+      )}
 
       {shortfall.length > 0 && (
         <div className="p-4 rounded-lg border border-(--color-error-500) bg-(--color-error-50)">

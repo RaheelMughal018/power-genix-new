@@ -13,6 +13,7 @@ import { CompleteProductionProvider } from './providers/complete-production.prov
 import { CreateProductionProvider } from './providers/create-production.provider';
 import { ProductionSerialProvider } from './providers/production-serial.provider';
 import { ProductionService } from './providers/production.service';
+import { RefreshPricesProvider } from './providers/refresh-prices.provider';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ProductionService } from './providers/production.service';
     CreateProductionProvider,
     CompleteProductionProvider,
     ProductionSerialProvider,
+    RefreshPricesProvider,
   ],
   exports: [ProductionService],
 })

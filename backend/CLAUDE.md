@@ -128,6 +128,10 @@ Repair invoice line items accept an optional `unitPrice` (defaults to item's `av
 - Delete: hard-deletes units + items before soft-deleting batch (releases serial numbers for reuse)
 - Serial numbers have a UNIQUE constraint — old units must be fully removed before re-inserting same serials
 
+### Production Refresh Prices
+
+`POST /production/:id/refresh-prices` (PENDING batches only) syncs every `production_unit_item.unitPrice` to the current `item.averagePrice`, recomputes each `unit.unitCost` and the batch `totalCost`. Used when raw-material avg prices change after a batch is created (e.g. stock adjustment added stock with a different price). Implemented in `RefreshPricesProvider`. The frontend disables the Complete action and surfaces this button when any stored `unitPrice` differs from the item's current `averagePrice`.
+
 ### Assets
 
 Business assets (equipment, vehicles, furniture, etc.) purchased from financial accounts. On create, `amount` is deducted from the selected account's `currentBalance`. On delete, amount is refunded back. On edit, old deduction is reversed and new deduction applied (handles account changes). Assets are included in the dashboard profit formula as `totalAssetAmount` and show in account detail transaction history under a dedicated "Assets" tab.

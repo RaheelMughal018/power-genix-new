@@ -34,6 +34,7 @@ export default function CreateProductionPage() {
   const [notes, setNotes] = useState('');
   const [units, setUnits] = useState<Unit[]>([]);
   const [editMode, setEditMode] = useState<'batch' | 'individual'>('batch');
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
 
   const unwrap = <T,>(res: { data: unknown }): T[] => {
     const raw = res.data as { data?: { data: T[] } } & { data: T[] };
@@ -80,8 +81,8 @@ export default function CreateProductionPage() {
 
       if (serials[0]) {
         const parts = serials[0].split('-');
-        setSerialPrefix(`${parts[0]}-${parts[1]}`);
-        setSerialSuffixes(serials.map((s) => s.split('-').pop() || ''));
+        setSerialPrefix(parts[0]);
+        setSerialSuffixes(serials.map((s) => s.split('-').slice(1).join('-')));
       }
 
       const baseItems: UnitItem[] = recipe.recipeItems.map((ri) => {
@@ -104,7 +105,7 @@ export default function CreateProductionPage() {
     newSuffixes[index] = suffix;
     setSerialSuffixes(newSuffixes);
     const updated = [...units];
-    updated[index] = { ...updated[index], serialNumber: `${serialPrefix}-${suffix.padStart(3, '0')}` };
+    updated[index] = { ...updated[index], serialNumber: `${serialPrefix}-${suffix}` };
     setUnits(updated);
   };
 
@@ -166,6 +167,28 @@ export default function CreateProductionPage() {
     const updated = [...units];
     updated[unitIdx] = { ...updated[unitIdx], items: updated[unitIdx].items.filter((_, i) => i !== itemIdx) };
     setUnits(updated);
+  };
+
+  const refreshPrices = async () => {
+    if (units.length === 0) return;
+    setRefreshingPrices(true);
+    try {
+      const rmRes = await itemsApi.getAll({ limit: 200, type: 'raw_material' });
+      const fresh = unwrap<RawMaterial>(rmRes);
+      setRawMaterials(fresh);
+      setUnits(units.map((unit) => ({
+        ...unit,
+        items: unit.items.map((item) => {
+          const mat = fresh.find((m) => m.id === item.itemId);
+          return mat ? { ...item, unitPrice: Number(mat.averagePrice) || 0 } : item;
+        }),
+      })));
+      addToast({ title: 'Prices refreshed', description: 'Updated to latest average prices', variant: 'success' });
+    } catch {
+      addToast({ title: 'Error', description: 'Failed to refresh prices', variant: 'error' });
+    } finally {
+      setRefreshingPrices(false);
+    }
   };
 
   const copperPerUnit = quantity > 0 ? copperAmount / quantity : 0;
@@ -233,18 +256,21 @@ export default function CreateProductionPage() {
 
         {units.length > 0 && (
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <h3 className="text-lg font-semibold text-(--color-text-primary)">Units ({units.length})</h3>
-              <div className="flex gap-2">
-                <Button size="sm" variant={editMode === 'batch' ? 'primary' : 'outline'} onClick={() => setEditMode('batch')}>Edit Batch</Button>
-                <Button size="sm" variant={editMode === 'individual' ? 'primary' : 'outline'} onClick={() => setEditMode('individual')}>Edit Individual</Button>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-4">
+                <h3 className="text-lg font-semibold text-(--color-text-primary)">Units ({units.length})</h3>
+                <div className="flex gap-2">
+                  <Button size="sm" variant={editMode === 'batch' ? 'primary' : 'outline'} onClick={() => setEditMode('batch')}>Edit Batch</Button>
+                  <Button size="sm" variant={editMode === 'individual' ? 'primary' : 'outline'} onClick={() => setEditMode('individual')}>Edit Individual</Button>
+                </div>
               </div>
+              <Button size="sm" variant="outline" onClick={refreshPrices} isLoading={refreshingPrices}>Refresh Prices</Button>
             </div>
 
             <div className="border border-(--color-border) rounded-lg p-4 space-y-2">
               <p className="text-sm font-medium text-(--color-text-primary)">Serial Numbers</p>
-              <p className="text-xs text-(--color-text-secondary)">Format: {serialPrefix}-XXX (enter the last 3 digits)</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <p className="text-xs text-(--color-text-secondary)">Format: {serialPrefix}-YYYY-NNN (enter year and sequence after {serialPrefix}-)</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {serialSuffixes.map((suffix, i) => (
                   <div key={i} className="flex items-center gap-1">
                     <span className="text-sm text-(--color-text-secondary) whitespace-nowrap">{serialPrefix}-</span>
@@ -252,9 +278,9 @@ export default function CreateProductionPage() {
                       type="text"
                       value={suffix}
                       onChange={(e) => updateSerialSuffix(i, e.target.value)}
-                      placeholder="001"
-                      maxLength={3}
-                      className="w-16 px-2 py-1.5 rounded-lg border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm text-center"
+                      placeholder="2026-001"
+                      maxLength={20}
+                      className="w-32 px-2 py-1.5 rounded-lg border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm text-center"
                     />
                   </div>
                 ))}
