@@ -43,6 +43,7 @@ export default function EditRepairInvoicePage() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
   const [customers, setCustomers] = useState<CustomerOption[]>([]);
   const [itemOptions, setItemOptions] = useState<ItemOption[]>([]);
 
@@ -102,6 +103,28 @@ export default function EditRepairInvoicePage() {
     };
     load();
   }, [id]);
+
+  const refreshPrices = async () => {
+    setRefreshingPrices(true);
+    try {
+      const itemRes = await itemsApi.getAll({ limit: 200 });
+      const items = unwrapList<{ id: number; name: string; averagePrice?: number }>(itemRes);
+      const fresh: ItemOption[] = items.map((i) => ({ id: String(i.id), name: i.name, avgPrice: i.averagePrice }));
+      setItemOptions(fresh);
+      setLineItems(lineItems.map((li) => {
+        if (!li.itemId) return li;
+        const opt = fresh.find((o) => o.id === li.itemId);
+        if (!opt) return li;
+        const unitPrice = Number(opt.avgPrice) || 0;
+        return { ...li, unitPrice, totalPrice: unitPrice * li.quantity };
+      }));
+      addToast({ title: 'Prices refreshed', description: 'Updated to latest average prices', variant: 'success' });
+    } catch {
+      addToast({ title: 'Error', description: 'Failed to refresh prices', variant: 'error' });
+    } finally {
+      setRefreshingPrices(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!customerId) { addToast({ title: 'Error', description: 'Select a customer', variant: 'error' }); return; }
@@ -166,7 +189,10 @@ export default function EditRepairInvoicePage() {
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-base font-semibold text-(--color-text-primary)">Parts Used</h3>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h3 className="text-base font-semibold text-(--color-text-primary)">Parts Used</h3>
+          <Button size="sm" variant="outline" onClick={refreshPrices} isLoading={refreshingPrices}>Refresh Prices</Button>
+        </div>
         <RepairLineItems
           lineItems={lineItems} onLineItemsChange={setLineItems}
           itemOptions={itemOptions} isCharged={isCharged}

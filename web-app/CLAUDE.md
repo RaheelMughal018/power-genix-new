@@ -72,7 +72,7 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 
 **Sale Invoice Serial Selection:** When selecting a final product serial, the unit price auto-fills with the production cost. User can override.
 
-**Repair Invoice Unit Price:** Auto-fills with item's average price on selection, but user can override for markup/profit. Both create and edit send `unitPrice` to the backend.
+**Repair Invoice Unit Price:** Auto-fills with item's average price on selection, but user can override for markup/profit. Both create and edit send `unitPrice` to the backend. A "Refresh Prices" button in the Parts Used header refetches items and overwrites every line's `unitPrice` with the current `averagePrice` (mirrors production create — use after editing stock adjustments mid-flow).
 
 **Production BOM Items:** Create and edit pages support dynamic add/remove of BOM items at runtime (not locked to recipe). Each unit can have different items/quantities when using "Edit Individual" mode.
 

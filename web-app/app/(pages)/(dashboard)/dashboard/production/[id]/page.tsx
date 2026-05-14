@@ -241,7 +241,7 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
 
       {shortfall.length > 0 && (
         <div className="p-4 rounded-lg border border-(--color-error-500) bg-(--color-error-50)">
-          <h3 className="font-semibold text-(--color-error-700) mb-2">Insufficient Stock</h3>
+          <h3 className="font-semibold text-(--color-error-600) mb-2">Insufficient Stock</h3>
           <div className="space-y-1">
             {shortfall.map((s, i) => (
               <p key={i} className="text-sm text-(--color-error-600)">
