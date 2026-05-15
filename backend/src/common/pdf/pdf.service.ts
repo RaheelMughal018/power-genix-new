@@ -41,6 +41,21 @@ export interface ItemsListPdfData {
   salePrice: number;
 }
 
+export interface RecipePdfData {
+  name: string;
+  finalProductName: string;
+  createdBy: string;
+  additionalExpense: number;
+  totalCost: number;
+  items: Array<{
+    name: string;
+    quantity: number;
+    unit: string;
+    averagePrice: number;
+    lineTotal: number;
+  }>;
+}
+
 const COL_GRAY = '#6B7280';
 const COL_DARK = '#111827';
 const LINE_COLOR = '#E5E7EB';
@@ -57,7 +72,7 @@ export class PdfService {
     const business = settings?.business;
 
     return new Promise((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true });
       const chunks: Buffer[] = [];
 
       doc.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -85,7 +100,7 @@ export class PdfService {
     const business = settings?.business;
 
     return new Promise((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true });
       const chunks: Buffer[] = [];
 
       doc.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -110,7 +125,7 @@ export class PdfService {
     const business = settings?.business;
 
     return new Promise((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true });
       const chunks: Buffer[] = [];
 
       doc.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -131,6 +146,135 @@ export class PdfService {
       this.drawPageFooter(doc);
       doc.end();
     });
+  }
+
+  async generateRecipePdf(data: RecipePdfData, userId: number): Promise<Buffer> {
+    const settings = await this.settingsService.getSettings({ id: userId } as any);
+    const business = settings?.business;
+
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true });
+      const chunks: Buffer[] = [];
+
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      this.drawHeader(doc, business);
+      this.drawRecipeInfo(doc, data);
+      this.drawRecipeItemsTable(doc, data);
+      this.drawRecipeTotals(doc, data);
+
+      this.drawPageFooter(doc);
+      doc.end();
+    });
+  }
+
+  private drawRecipeInfo(doc: PDFKit.PDFDocument, data: RecipePdfData) {
+    doc.fontSize(16).fillColor(ACCENT).font('Helvetica-Bold').text('Recipe', { align: 'center' });
+    doc.moveDown(0.8);
+
+    const leftX = 50;
+    const rightX = 300;
+    const labelW = 110;
+    const infoY = doc.y;
+
+    doc.fontSize(9).font('Helvetica-Bold').fillColor(COL_DARK);
+    doc.text('Recipe Name:', leftX, infoY, { width: labelW });
+    doc.font('Helvetica').text(data.name, leftX + labelW, infoY);
+
+    doc.font('Helvetica-Bold').text('Final Product:', leftX, infoY + 14, { width: labelW });
+    doc.font('Helvetica').text(data.finalProductName, leftX + labelW, infoY + 14);
+
+    doc.font('Helvetica-Bold').text('Created By:', rightX, infoY, { width: 80 });
+    doc.font('Helvetica').text(data.createdBy, rightX + 80, infoY);
+
+    doc.font('Helvetica-Bold').text('Date:', rightX, infoY + 14, { width: 80 });
+    doc.font('Helvetica').text(new Date().toLocaleDateString('en-PK'), rightX + 80, infoY + 14);
+
+    doc.moveDown(2.5);
+  }
+
+  private drawRecipeItemsTable(doc: PDFKit.PDFDocument, data: RecipePdfData) {
+    const tableTop = doc.y;
+    const rowHeight = 22;
+    const cols = [
+      { label: '#', x: 50, w: 30, align: 'left' as const },
+      { label: 'Item', x: 80, w: 200, align: 'left' as const },
+      { label: 'Qty', x: 280, w: 50, align: 'right' as const },
+      { label: 'Unit', x: 330, w: 50, align: 'center' as const },
+      { label: 'Avg Price', x: 380, w: 75, align: 'right' as const },
+      { label: 'Line Total', x: 455, w: 90, align: 'right' as const },
+    ];
+
+    doc.rect(50, tableTop, 495, rowHeight).fill(ACCENT_LIGHT);
+    doc.fontSize(9).font('Helvetica-Bold').fillColor(ACCENT);
+    for (const col of cols) {
+      doc.text(col.label, col.x + 4, tableTop + 6, { width: col.w - 4, align: col.align });
+    }
+
+    let rowY = tableTop + rowHeight;
+    data.items.forEach((item, idx) => {
+      if (rowY > 700) {
+        doc.addPage();
+        rowY = 50;
+      }
+      if (idx % 2 === 1) {
+        doc.rect(50, rowY, 495, rowHeight).fill(ROW_STRIPE);
+      }
+      doc.moveTo(50, rowY).lineTo(545, rowY).strokeColor(LINE_COLOR).lineWidth(0.5).stroke();
+      doc.fontSize(9).font('Helvetica').fillColor(COL_DARK);
+
+      const values = [
+        String(idx + 1),
+        item.name,
+        String(item.quantity),
+        item.unit,
+        this.fmt(item.averagePrice),
+        this.fmt(item.lineTotal),
+      ];
+      cols.forEach((col, i) => {
+        doc.text(values[i], col.x + 4, rowY + 6, { width: col.w - 4, align: col.align });
+      });
+      rowY += rowHeight;
+    });
+    doc.moveTo(50, rowY).lineTo(545, rowY).strokeColor(ACCENT).lineWidth(1).stroke();
+    doc.y = rowY + 5;
+  }
+
+  private drawRecipeTotals(doc: PDFKit.PDFDocument, data: RecipePdfData) {
+    const boxX = 360;
+    const boxW = 185;
+    let y = doc.y + 8;
+
+    const subtotal = data.items.reduce((s, i) => s + i.lineTotal, 0);
+    const rows: Array<{ label: string; value: string; bold: boolean }> = [
+      { label: 'Subtotal', value: this.fmt(subtotal), bold: false },
+      { label: 'Additional Expense', value: this.fmt(data.additionalExpense), bold: false },
+      { label: 'Total Cost', value: this.fmt(data.totalCost), bold: true },
+    ];
+
+    const boxH = rows.length * 18 + 16;
+    doc.rect(boxX, y - 6, boxW, boxH).fill(ACCENT_LIGHT);
+    const x = boxX + 8;
+    y += 2;
+
+    for (const row of rows) {
+      if (row.bold) {
+        doc.moveTo(x, y - 2).lineTo(boxX + boxW - 8, y - 2)
+          .strokeColor(ACCENT).lineWidth(0.5).stroke();
+        y += 4;
+      }
+      doc.fontSize(9)
+        .font(row.bold ? 'Helvetica-Bold' : 'Helvetica')
+        .fillColor(row.bold ? COL_DARK : COL_GRAY)
+        .text(row.label, x, y, { width: 110, align: 'right' });
+      doc.font(row.bold ? 'Helvetica-Bold' : 'Helvetica')
+        .fillColor(COL_DARK)
+        .text(row.value, x + 115, y, { width: 60, align: 'right' });
+      y += 18;
+    }
+    doc.y = y + 10;
   }
 
   private drawHeader(
@@ -422,7 +566,7 @@ export class PdfService {
 
   private drawPageFooter(doc: PDFKit.PDFDocument) {
     const pages = doc.bufferedPageRange();
-    for (let i = 0; i < pages.count; i++) {
+    for (let i = pages.start; i < pages.start + pages.count; i++) {
       doc.switchToPage(i);
       const bottomY = 780;
       doc.moveTo(50, bottomY).lineTo(545, bottomY).strokeColor(LINE_COLOR).lineWidth(0.5).stroke();
@@ -430,6 +574,7 @@ export class PdfService {
         .text('Generated by Power Genix', 50, bottomY + 4, { width: 250, align: 'left' });
       doc.text(new Date().toLocaleDateString('en-PK'), 300, bottomY + 4, { width: 245, align: 'right' });
     }
+    doc.flushPages();
   }
 
   private fmt(n: number): string {

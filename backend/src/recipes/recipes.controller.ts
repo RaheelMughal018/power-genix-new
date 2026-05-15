@@ -22,6 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { PdfService } from '@/common/pdf/pdf.service';
 import { CreateRecipeDto } from './dtos/create-recipe.dto';
 import { UpdateRecipeDto } from './dtos/update-recipe.dto';
 import { RecipesService } from './providers/recipes.service';
@@ -30,7 +31,10 @@ import { RecipesService } from './providers/recipes.service';
 @ApiBearerAuth()
 @Controller('recipes')
 export class RecipesController {
-  constructor(private readonly recipesService: RecipesService) {}
+  constructor(
+    private readonly recipesService: RecipesService,
+    private readonly pdfService: PdfService,
+  ) {}
 
   @ApiOperation({ summary: 'Get all recipes (paginated)' })
   @ApiResponse({ status: 200, description: 'Recipes retrieved successfully' })
@@ -47,6 +51,49 @@ export class RecipesController {
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="recipes.csv"');
     res.send(csv);
+  }
+
+  @ApiOperation({ summary: 'Export a recipe as PDF' })
+  @ApiResponse({ status: 200, description: 'PDF export of recipe' })
+  @ApiResponse({ status: 404, description: 'Recipe not found' })
+  @ApiParam({ name: 'id', type: Number })
+  @Get(':id/pdf')
+  async exportPdf(
+    @Param('id', ParseIntPipe) id: number,
+    @ActiveUser() activeUser: ActiveUserData,
+    @Res() res: Response,
+  ) {
+    const recipe = await this.recipesService.findOne(id);
+    if (!recipe) return;
+
+    const items = (recipe.recipeItems ?? []).map((ri) => ({
+      name: ri.item?.name ?? '',
+      quantity: Number(ri.quantity),
+      unit: ri.item?.unit ?? '',
+      averagePrice: Number(ri.item?.averagePrice ?? 0),
+      lineTotal: Number(ri.quantity) * Number(ri.item?.averagePrice ?? 0),
+    }));
+
+    const buffer = await this.pdfService.generateRecipePdf(
+      {
+        name: recipe.name,
+        finalProductName: recipe.finalProduct?.name ?? '—',
+        createdBy: recipe.createdBy
+          ? `${recipe.createdBy.firstName} ${recipe.createdBy.lastName}`
+          : '—',
+        additionalExpense: Number(recipe.additionalExpense),
+        totalCost: Number(recipe.totalCost),
+        items,
+      },
+      activeUser.id,
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="recipe-${recipe.id}.pdf"`,
+    );
+    res.send(buffer);
   }
 
   @ApiOperation({ summary: 'Get a single recipe by ID' })

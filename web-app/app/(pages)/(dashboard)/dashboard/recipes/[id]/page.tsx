@@ -8,6 +8,7 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { Spinner } from '@/app/_shared/components/ui/spinner/spinner';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { downloadPdf } from '@/app/_shared/lib/utils/download';
 
 interface RecipeDetail {
   id: number;
@@ -28,6 +29,19 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
   const { addToast } = useToast();
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!recipe) return;
+    setDownloading(true);
+    try {
+      await downloadPdf(`/recipes/${recipe.id}/pdf`, `recipe-${recipe.id}.pdf`);
+    } catch {
+      addToast({ title: 'Error', description: 'Failed to download PDF', variant: 'error' });
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     const fetch = async () => {
@@ -60,6 +74,9 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
           <h1 className="text-3xl font-bold text-(--color-text-primary)">{recipe.name}</h1>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleDownloadPdf} disabled={downloading}>
+            {downloading ? 'Downloading…' : 'Download PDF'}
+          </Button>
           <Button variant="outline" onClick={() => router.push(`${ROUTES.RECIPES}/${recipe.id}/edit`)}>Edit</Button>
           <Button variant="outline" onClick={() => router.push(ROUTES.RECIPES)}>← Back</Button>
         </div>
