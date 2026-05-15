@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable, type Column } from '@/app/_shared/components/ui/dataTable/dataTable';
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
+import { HistoryFilters } from '@/app/_shared/components/ui/historyFilters/historyFilters';
 import { customerPaymentsApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
 import { formatDate } from '@/app/_shared/lib/utils/date';
@@ -27,11 +28,20 @@ export function CustomerPaymentHistoryTab({ customerId }: Props) {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [search, setSearch] = useState('');
+  const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
 
-  const fetchData = useCallback(async (p: number) => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await customerPaymentsApi.getAll({ customerId, limit: 10, page: p });
+      const res = await customerPaymentsApi.getAll({
+        customerId,
+        limit: 10,
+        page,
+        search: search || undefined,
+        fromDate: dateRange?.from,
+        toDate: dateRange?.to,
+      });
       const outer = res.data as { data: { data: CustomerPayment[]; meta: { totalItems: number; totalPages: number } } };
       const payload = outer.data;
       setPayments(payload.data ?? []);
@@ -42,9 +52,11 @@ export function CustomerPaymentHistoryTab({ customerId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [customerId]);
+  }, [customerId, page, search, dateRange]);
 
-  useEffect(() => { fetchData(page); }, [fetchData, page]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => { setPage(1); }, [search, dateRange]);
 
   const columns: Column<CustomerPayment>[] = [
     {
@@ -66,19 +78,31 @@ export function CustomerPaymentHistoryTab({ customerId }: Props) {
     { key: 'notes', label: 'Notes', render: (row) => row.notes || '-' },
   ];
 
-  if (!loading && payments.length === 0 && page === 1) {
-    return <NoContentCard title="No payment history" description="No payments found for this customer." />;
-  }
+  const hasFilters = Boolean(search) || Boolean(dateRange);
+  const showEmpty = !loading && payments.length === 0 && page === 1 && !hasFilters;
 
   return (
-    <DataTable
-      columns={columns}
-      data={payments}
-      totalItems={totalItems}
-      currentPage={page}
-      totalPages={totalPages}
-      onPageChange={setPage}
-      isLoading={loading}
-    />
+    <div>
+      <HistoryFilters
+        search={search}
+        onSearchChange={setSearch}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        searchPlaceholder="Search by invoice # or notes..."
+      />
+      {showEmpty ? (
+        <NoContentCard title="No payment history" description="No payments found for this customer." />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={payments}
+          totalItems={totalItems}
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          isLoading={loading}
+        />
+      )}
+    </div>
   );
 }

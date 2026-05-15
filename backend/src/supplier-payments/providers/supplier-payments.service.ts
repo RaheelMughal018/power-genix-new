@@ -41,6 +41,13 @@ export class SupplierPaymentsService {
         qb.andWhere('sp.accountId = :accountId', { accountId: query.accountId });
       }
 
+      if (query.search) {
+        qb.andWhere(
+          '(sp.invoiceNumber ILIKE :search OR supplier.name ILIKE :search OR sp.notes ILIKE :search)',
+          { search: `%${query.search}%` },
+        );
+      }
+
       if (query.fromDate) {
         qb.andWhere('sp.date >= :fromDate', { fromDate: query.fromDate });
       }

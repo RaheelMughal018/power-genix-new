@@ -41,6 +41,13 @@ export class CustomerPaymentsService {
         qb.andWhere('cp.accountId = :accountId', { accountId: query.accountId });
       }
 
+      if (query.search) {
+        qb.andWhere(
+          '(cp.invoiceNumber ILIKE :search OR customer.name ILIKE :search OR cp.notes ILIKE :search)',
+          { search: `%${query.search}%` },
+        );
+      }
+
       if (query.fromDate) {
         qb.andWhere('cp.date >= :fromDate', { fromDate: query.fromDate });
       }

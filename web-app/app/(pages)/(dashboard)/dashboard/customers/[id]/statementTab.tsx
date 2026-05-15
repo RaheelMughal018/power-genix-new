@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/app/_shared/components/ui/button/button';
 import { DateRangePicker } from '@/app/_shared/components/ui/dateRangePicker/dateRangePicker';
+import { Input } from '@/app/_shared/components/ui/input/input';
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
 import { customersApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
@@ -88,6 +89,8 @@ export function CustomerStatementTab({ customerId }: Props) {
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [pickerKey, setPickerKey] = useState(0);
 
   const fetchStatement = useCallback(async (range: { from?: string; to?: string } = {}) => {
     setLoading(true);
@@ -109,6 +112,14 @@ export function CustomerStatementTab({ customerId }: Props) {
     setDateRange(range);
   };
 
+  const handleClearFilters = () => {
+    setSearch('');
+    setDateRange(null);
+    setPickerKey((k) => k + 1);
+  };
+
+  const hasFilter = Boolean(search) || Boolean(dateRange);
+
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
@@ -121,13 +132,36 @@ export function CustomerStatementTab({ customerId }: Props) {
     }
   };
 
-  const rows = statement?.rows ?? [];
+  const allRows = statement?.rows ?? [];
   const footer = statement?.footer;
+  const term = search.trim().toLowerCase();
+  const rows = term
+    ? allRows.filter((r) => (r.invoiceNumber ?? '').toLowerCase().includes(term))
+    : allRows;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <DateRangePicker onChange={handleDateChange} />
+        <div className="flex items-end flex-wrap gap-3 flex-1">
+          <div className="w-full sm:w-72">
+            <Input
+              size="sm"
+              placeholder="Search by invoice #..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <DateRangePicker key={pickerKey} onChange={handleDateChange} />
+          {hasFilter && (
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-sm text-(--color-primary) hover:underline cursor-pointer px-2 py-1"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
         <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
           {downloading ? 'Downloading...' : 'Download PDF'}
         </Button>

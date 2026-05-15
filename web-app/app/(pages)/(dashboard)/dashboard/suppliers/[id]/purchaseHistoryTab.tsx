@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable, type Column } from '@/app/_shared/components/ui/dataTable/dataTable';
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
+import { HistoryFilters } from '@/app/_shared/components/ui/historyFilters/historyFilters';
 import { purchaseInvoicesApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
 import { formatDate } from '@/app/_shared/lib/utils/date';
@@ -26,11 +27,20 @@ export function PurchaseHistoryTab({ supplierId }: Props) {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [search, setSearch] = useState('');
+  const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
 
-  const fetchData = useCallback(async (p: number) => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await purchaseInvoicesApi.getAll({ supplierId, limit: 10, page: p });
+      const res = await purchaseInvoicesApi.getAll({
+        supplierId,
+        limit: 10,
+        page,
+        search: search || undefined,
+        fromDate: dateRange?.from,
+        toDate: dateRange?.to,
+      });
       const outer = res.data as { data: { data: PurchaseInvoice[]; meta: { totalItems: number; totalPages: number } } };
       const payload = outer.data;
       setInvoices(payload.data ?? []);
@@ -41,9 +51,11 @@ export function PurchaseHistoryTab({ supplierId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [supplierId]);
+  }, [supplierId, page, search, dateRange]);
 
-  useEffect(() => { fetchData(page); }, [fetchData, page]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => { setPage(1); }, [search, dateRange]);
 
   const columns: Column<PurchaseInvoice>[] = [
     {
@@ -63,19 +75,31 @@ export function PurchaseHistoryTab({ supplierId }: Props) {
     { key: 'grandTotal', label: 'Amount', render: (row) => formatPKR(row.grandTotal ?? row.totalAmount ?? 0) },
   ];
 
-  if (!loading && invoices.length === 0 && page === 1) {
-    return <NoContentCard title="No purchase history" description="No purchase invoices found for this supplier." />;
-  }
+  const hasFilters = Boolean(search) || Boolean(dateRange);
+  const showEmpty = !loading && invoices.length === 0 && page === 1 && !hasFilters;
 
   return (
-    <DataTable
-      columns={columns}
-      data={invoices}
-      totalItems={totalItems}
-      currentPage={page}
-      totalPages={totalPages}
-      onPageChange={setPage}
-      isLoading={loading}
-    />
+    <div>
+      <HistoryFilters
+        search={search}
+        onSearchChange={setSearch}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        searchPlaceholder="Search by invoice # or notes..."
+      />
+      {showEmpty ? (
+        <NoContentCard title="No purchase history" description="No purchase invoices found for this supplier." />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={invoices}
+          totalItems={totalItems}
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          isLoading={loading}
+        />
+      )}
+    </div>
   );
 }
