@@ -6,6 +6,7 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { DateRangePicker } from '@/app/_shared/components/ui/dateRangePicker/dateRangePicker';
 import { Input } from '@/app/_shared/components/ui/input/input';
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
+import { Pagination } from '@/app/_shared/components/ui/pagination/pagination';
 import { suppliersApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
 import { formatDate } from '@/app/_shared/lib/utils/date';
@@ -91,6 +92,8 @@ export function StatementTab({ supplierId }: Props) {
   const [downloading, setDownloading] = useState(false);
   const [search, setSearch] = useState('');
   const [pickerKey, setPickerKey] = useState(0);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   const fetchStatement = useCallback(async (range: { from?: string; to?: string } = {}) => {
     setLoading(true);
@@ -107,6 +110,8 @@ export function StatementTab({ supplierId }: Props) {
   useEffect(() => {
     fetchStatement(dateRange ?? {});
   }, [fetchStatement, dateRange]);
+
+  useEffect(() => { setPage(1); }, [search, dateRange]);
 
   const handleDateChange = (range: { from: string; to: string } | null) => {
     setDateRange(range);
@@ -135,9 +140,14 @@ export function StatementTab({ supplierId }: Props) {
   const allRows = statement?.rows ?? [];
   const footer = statement?.footer;
   const term = search.trim().toLowerCase();
-  const rows = term
+  const filteredRows = term
     ? allRows.filter((r) => (r.invoiceNumber ?? '').toLowerCase().includes(term))
     : allRows;
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const rows = filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const showOpening = currentPage === 1;
+  const showTotals = currentPage === totalPages;
 
   return (
     <div className="space-y-4">
@@ -173,11 +183,11 @@ export function StatementTab({ supplierId }: Props) {
         </div>
       )}
 
-      {!loading && rows.length === 0 && (
+      {!loading && filteredRows.length === 0 && (
         <NoContentCard title="No statement data" description="No transactions found for the selected period." />
       )}
 
-      {!loading && rows.length > 0 && (
+      {!loading && filteredRows.length > 0 && (
         <div className="border border-(--color-border) rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-(--color-bg-secondary)">
@@ -191,7 +201,7 @@ export function StatementTab({ supplierId }: Props) {
               </tr>
             </thead>
             <tbody>
-              {footer && (
+              {footer && showOpening && (
                 <tr className="bg-(--color-bg-secondary)/30">
                   <td className="px-4 py-3 text-(--color-text-primary) italic">
                     {dateRange?.from ? formatDate(dateRange.from) : '-'}
@@ -233,7 +243,7 @@ export function StatementTab({ supplierId }: Props) {
                 </tr>
               ))}
             </tbody>
-            {footer && (
+            {footer && showTotals && (
               <tfoot className="border-t-2 border-(--color-border) bg-(--color-bg-secondary)">
                 <tr>
                   <td colSpan={2} className="px-4 py-3 font-semibold text-(--color-text-primary)">Total</td>
@@ -245,6 +255,15 @@ export function StatementTab({ supplierId }: Props) {
               </tfoot>
             )}
           </table>
+        </div>
+      )}
+
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-between flex-wrap gap-3 mt-2">
+          <span className="text-sm text-(--color-text-secondary)">
+            Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredRows.length)} of {filteredRows.length}
+          </span>
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
         </div>
       )}
     </div>
