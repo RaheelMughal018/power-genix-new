@@ -82,13 +82,21 @@ export class SuppliersController {
     @Query('to') to?: string,
   ) {
     const statement = (await this.suppliersService.getStatement(id, from, to))!;
+    const openingRow: Record<string, string | number> = {
+      'Date': statement.dateRange?.from || '-',
+      'Invoice #': 'Opening Balance',
+      'Purchase Amount': '-',
+      'Return Amount': '-',
+      'Amount Paid': '-',
+      'Outstanding Balance': statement.footer['Opening Balance'] ?? 0,
+    };
     const buffer = await this.pdfService.generateStatementPdf(
       {
         title: 'Supplier Statement',
         partyName: statement.supplier.name,
         dateRange: statement.dateRange,
         columns: statement.columns,
-        rows: statement.rows,
+        rows: [openingRow, ...statement.rows],
         footer: statement.footer,
       },
       activeUser.id,

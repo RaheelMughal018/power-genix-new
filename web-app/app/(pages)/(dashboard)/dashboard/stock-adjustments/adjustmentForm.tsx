@@ -46,8 +46,8 @@ export const AdjustmentForm = ({
   onCancel,
 }: AdjustmentFormProps) => {
   const reasons = form.type === 'add' ? ADD_REASONS : DEDUCT_REASONS;
-  const showUnitPrice = form.type === 'add';
   const showSupplier = form.reason === 'return_to_supplier';
+  const showUnitPrice = form.type === 'add' || showSupplier;
 
   const formRef = React.useRef<HTMLDivElement>(null);
 
@@ -174,10 +174,9 @@ export const AdjustmentForm = ({
           />
         </div>
 
-        {/* Unit Price (add only) */}
         {showUnitPrice && (
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-(--color-text-secondary)">Unit Price (Rs.)</label>
+            <label className="text-sm font-medium text-(--color-text-secondary)">Unit Price (Rs.) *</label>
             <input
               type="number"
               min="0"

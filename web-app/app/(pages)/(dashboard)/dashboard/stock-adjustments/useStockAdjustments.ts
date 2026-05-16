@@ -167,6 +167,14 @@ export function useStockAdjustments() {
   useEffect(() => { fetchItems(); fetchSuppliers(); }, [fetchItems, fetchSuppliers]);
   useEffect(() => { fetchAdjustments(); }, [fetchAdjustments]);
 
+  useEffect(() => {
+    if (!selectedItemInfo) return;
+    setForm((prev) => {
+      if (prev.reason !== 'return_to_supplier' || prev.unitPrice) return prev;
+      return { ...prev, unitPrice: String(selectedItemInfo.avgPrice ?? '') };
+    });
+  }, [selectedItemInfo]);
+
   const handleItemChange = (itemId: number | '') => {
     setForm((prev) => ({ ...prev, itemId, reason: '' }));
     if (itemId) fetchItemInfo(itemId as number);
@@ -178,7 +186,13 @@ export function useStockAdjustments() {
   };
 
   const handleFieldChange = <K extends keyof AdjustmentFormValues>(key: K, value: AdjustmentFormValues[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [key]: value } as AdjustmentFormValues;
+      if (key === 'reason' && value === 'return_to_supplier' && !prev.unitPrice && selectedItemInfo) {
+        next.unitPrice = String(selectedItemInfo.avgPrice ?? '');
+      }
+      return next;
+    });
   };
 
   const resetForm = () => {
@@ -190,6 +204,11 @@ export function useStockAdjustments() {
   const handleSubmit = async () => {
     if (!form.itemId || !form.reason || !form.quantity || !form.date) {
       addToast({ title: 'Validation', description: 'Fill all required fields', variant: 'error' });
+      return;
+    }
+    const needsUnitPrice = form.type === 'add' || form.reason === 'return_to_supplier';
+    if (needsUnitPrice && !form.unitPrice) {
+      addToast({ title: 'Validation', description: 'Unit price is required', variant: 'error' });
       return;
     }
     setSubmitting(true);

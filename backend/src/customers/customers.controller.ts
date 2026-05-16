@@ -82,13 +82,21 @@ export class CustomersController {
     @Query('to') to?: string,
   ) {
     const statement = (await this.customersService.getStatement(id, from, to))!;
+    const openingRow: Record<string, string | number> = {
+      'Date': statement.dateRange?.from || '-',
+      'Invoice #': 'Opening Balance',
+      'Sale Amount': '-',
+      'Repair Amount': '-',
+      'Amount Received': '-',
+      'Outstanding Balance': statement.footer['Opening Balance'] ?? 0,
+    };
     const buffer = await this.pdfService.generateStatementPdf(
       {
         title: 'Customer Statement',
         partyName: statement.customer.name,
         dateRange: statement.dateRange,
         columns: statement.columns,
-        rows: statement.rows,
+        rows: [openingRow, ...statement.rows],
         footer: statement.footer,
       },
       activeUser.id,

@@ -151,7 +151,7 @@ export class StockAdjustmentsService {
       } else if (dto.reason === AdjustmentReason.RETURN_TO_SUPPLIER) {
         const supplier = await queryRunner.manager.findOne(Supplier, { where: { id: dto.supplierId! } });
         if (!supplier) throw new NotFoundException(`Supplier #${dto.supplierId} not found`);
-        deductionAmount = await this.applyReturnToSupplier(queryRunner, item, dto.quantity);
+        deductionAmount = await this.applyReturnToSupplier(queryRunner, item, dto.quantity, dto.unitPrice!);
       } else {
         await this.applyDamagedLost(queryRunner, item, dto.quantity);
       }
@@ -233,7 +233,7 @@ export class StockAdjustmentsService {
           const supplier = await queryRunner.manager.findOne(Supplier, { where: { id: finalSupplierId } });
           if (!supplier) throw new NotFoundException(`Supplier #${finalSupplierId} not found`);
         }
-        deductionAmount = await this.applyReturnToSupplier(queryRunner, finalItem, finalQty);
+        deductionAmount = await this.applyReturnToSupplier(queryRunner, finalItem, finalQty, finalUnitPrice!);
       } else {
         await this.applyDamagedLost(queryRunner, finalItem, finalQty);
       }
@@ -321,6 +321,9 @@ export class StockAdjustmentsService {
     if (dto.reason === AdjustmentReason.RETURN_TO_SUPPLIER && !dto.supplierId) {
       throw new BadRequestException('supplierId is required when reason is return_to_supplier');
     }
+    if (dto.reason === AdjustmentReason.RETURN_TO_SUPPLIER && !dto.unitPrice) {
+      throw new BadRequestException('unitPrice is required when reason is return_to_supplier');
+    }
     if (dto.type === AdjustmentType.ADD && (
       dto.reason === AdjustmentReason.RETURN_TO_SUPPLIER ||
       dto.reason === AdjustmentReason.DAMAGED_LOST
@@ -361,6 +364,7 @@ export class StockAdjustmentsService {
     queryRunner: QueryRunner,
     item: Item,
     qty: number,
+    unitPrice: number,
   ): Promise<number> {
     const currentQty = Number(item.totalQuantity);
     if (currentQty < qty) {
@@ -369,7 +373,7 @@ export class StockAdjustmentsService {
       );
     }
 
-    const deductionAmount = qty * Number(item.averagePrice);
+    const deductionAmount = qty * Number(unitPrice);
 
     await queryRunner.manager.update(Item, { id: item.id }, {
       totalQuantity: currentQty - qty,
