@@ -85,6 +85,14 @@ export default function StockAdjustmentsPage() {
       render: (row) => row.unitPrice != null ? `Rs. ${Number(row.unitPrice).toFixed(2)}` : '—',
     },
     {
+      key: 'deductionAmount',
+      label: 'Deducted From Supplier',
+      width: '160px',
+      render: (row) => row.reason === 'return_to_supplier' && row.deductionAmount != null
+        ? `Rs. ${Number(row.deductionAmount).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : '—',
+    },
+    {
       key: 'supplier',
       label: 'Supplier',
       render: (row) => row.supplier?.name ?? '—',

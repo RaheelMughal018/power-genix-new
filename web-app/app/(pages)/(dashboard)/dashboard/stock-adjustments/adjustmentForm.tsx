@@ -48,6 +48,9 @@ export const AdjustmentForm = ({
   const reasons = form.type === 'add' ? ADD_REASONS : DEDUCT_REASONS;
   const showSupplier = form.reason === 'return_to_supplier';
   const showUnitPrice = form.type === 'add' || showSupplier;
+  const qty = parseFloat(form.quantity || '0') || 0;
+  const unitPrice = parseFloat(form.unitPrice || '0') || 0;
+  const deductionAmount = qty * unitPrice;
 
   const formRef = React.useRef<HTMLDivElement>(null);
 
@@ -202,6 +205,18 @@ export const AdjustmentForm = ({
           </div>
         )}
       </div>
+
+      {showSupplier && (
+        <div className="bg-(--color-warning-50) border border-(--color-warning-500) rounded-lg px-4 py-3 flex items-center justify-between">
+          <span className="text-sm text-(--color-text-secondary)">
+            Amount to deduct from supplier
+            <span className="text-(--color-text-secondary)"> ({qty || 0} × Rs. {unitPrice.toFixed(2)})</span>
+          </span>
+          <span className="text-base font-semibold text-(--color-warning-600)">
+            Rs. {deductionAmount.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        </div>
+      )}
 
       {/* Notes */}
       <div className="flex flex-col gap-1">

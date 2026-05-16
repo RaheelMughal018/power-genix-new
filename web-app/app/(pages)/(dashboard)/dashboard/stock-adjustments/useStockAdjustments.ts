@@ -42,6 +42,7 @@ export interface StockAdjustment extends Record<string, unknown> {
   reason: string;
   quantity: number;
   unitPrice?: number;
+  deductionAmount?: number | null;
   notes?: string;
   item: { id: number; name: string; unit: string };
   supplier?: { id: number; name: string };
