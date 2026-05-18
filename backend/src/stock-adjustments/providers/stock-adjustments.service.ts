@@ -1,5 +1,6 @@
 import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import { handleError } from '@/common/error-handlers/error.handler';
+import { applySearch } from '@/common/helpers/search-clause.helper';
 import { calculateWeightedAverage } from '@/common/helpers/stock.helper';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { Item } from '@/items/entities/item.entity';
@@ -60,9 +61,11 @@ export class StockAdjustmentsService {
         qb.andWhere('adj.date <= :toDate', { toDate: query.toDate });
       }
 
-      if (query.search) {
-        qb.andWhere('item.name ILIKE :search', { search: `%${query.search}%` });
-      }
+      applySearch(qb, query.search, {
+        text: ['item.name', 'supplier.name', 'adj.notes', 'adj.type::text', 'adj.reason::text'],
+        numeric: ['adj.quantity', 'adj.unitPrice', 'adj.deductionAmount'],
+        date: ['adj.date'],
+      });
 
       const [data, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
 

@@ -1,6 +1,7 @@
 import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import { handleError } from '@/common/error-handlers/error.handler';
 import { generateInvoiceNumber } from '@/common/helpers/invoice-number.helper';
+import { applySearch } from '@/common/helpers/search-clause.helper';
 import { calculateWeightedAverage } from '@/common/helpers/stock.helper';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { Item } from '@/items/entities/item.entity';
@@ -34,12 +35,11 @@ export class PurchaseInvoicesService {
         .orderBy('pi.date', 'DESC')
         .addOrderBy('pi.id', 'DESC');
 
-      if (query.search) {
-        qb.andWhere(
-          '(pi.invoiceNumber ILIKE :search OR supplier.name ILIKE :search OR pi.notes ILIKE :search)',
-          { search: `%${query.search}%` },
-        );
-      }
+      applySearch(qb, query.search, {
+        text: ['pi.invoiceNumber', 'supplier.name', 'pi.notes'],
+        numeric: ['pi.totalAmount'],
+        date: ['pi.date'],
+      });
 
       if (query.supplierId) {
         qb.andWhere('pi.supplierId = :supplierId', { supplierId: query.supplierId });

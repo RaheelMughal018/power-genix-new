@@ -61,6 +61,12 @@ Listing endpoints for suppliers and customers also include computed totals via s
 
 Statement endpoints (`GET /suppliers/:id/statement`, `GET /customers/:id/statement`) accept optional `from`/`to` query params and return timeline rows with running balances. Each row includes `id` and `type` fields for frontend linking. Customer statements include FOC (free of charge) repair invoices as `repair_foc` type — these show the full repair amount but do not affect the running balance (Outstanding Balance column shows "-" for FOC rows). Supplier statements include return-to-supplier stock adjustments as `return` type with a "Return Amount" column — returns reduce the supplier's outstanding balance.
 
+Statement PDF exports (`GET /suppliers/:id/statement/pdf`, `GET /customers/:id/statement/pdf`) prepend an "Opening Balance" row to the rows array using `footer['Opening Balance']` so the PDF shows the starting balance before the date-range transactions.
+
+History/payment listings (`GET /supplier-payments`, `GET /customer-payments`, supplier/customer purchase/sale/repair list endpoints) accept a `search` query param that matches against invoice number, party name, and notes via `ILIKE`. They also accept `fromDate`/`toDate` for date-range filtering.
+
+PDF exports use `PdfService` and `@Res()` to stream the file. Current endpoints: supplier/customer statement, sale/purchase/repair invoice, and `GET /recipes/:id/pdf` (recipe with BOM items, average prices, additional expense, and total cost).
+
 ### Delete Guards
 
 Entities with dependent records cannot be deleted. The following guards are enforced:
@@ -83,13 +89,14 @@ All stock-deducting operations validate available quantity before proceeding:
 - Repair invoices: Same check when `isReal = true`
 - Production: `checkStockSufficiency()` validates all recipe items
 - Stock adjustments (deduct): Validates quantity available
-- Stock adjustments (return_to_supplier): Deducts stock and reduces supplier outstanding by `qty × averagePrice`
+- Stock adjustments (return_to_supplier): Requires `unitPrice` (BadRequestException if missing). Deducts stock and reduces supplier outstanding by `qty × unitPrice`. The `deductionAmount` is persisted on the adjustment row for display.
 
 ### Weighted Average Price
 
 Items track `averagePrice` using the weighted average formula: `(oldQty × oldAvg + newQty × newPrice) / totalQty`. Updated on:
 - Purchase invoice creation (per line item)
 - Stock adjustment (add type only, with unitPrice)
+- Production batch completion — final product avg recomputed as `(oldQty × oldAvg + batchCost) / (oldQty + batchQty)` where `batchCost` is the batch `totalCost`
 
 On deductions (sale, repair, production), only `totalQuantity` decreases — `averagePrice` is preserved. When qty reaches 0 and new stock arrives, avg resets to the new price naturally.
 

@@ -1,6 +1,7 @@
 import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import { handleError } from '@/common/error-handlers/error.handler';
 import { generateInvoiceNumber } from '@/common/helpers/invoice-number.helper';
+import { applySearch } from '@/common/helpers/search-clause.helper';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { Account } from '@/accounts/entities/account.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -41,12 +42,11 @@ export class SupplierPaymentsService {
         qb.andWhere('sp.accountId = :accountId', { accountId: query.accountId });
       }
 
-      if (query.search) {
-        qb.andWhere(
-          '(sp.invoiceNumber ILIKE :search OR supplier.name ILIKE :search OR sp.notes ILIKE :search)',
-          { search: `%${query.search}%` },
-        );
-      }
+      applySearch(qb, query.search, {
+        text: ['sp.invoiceNumber', 'supplier.name', 'sp.notes', 'account.name'],
+        numeric: ['sp.amount'],
+        date: ['sp.date'],
+      });
 
       if (query.fromDate) {
         qb.andWhere('sp.date >= :fromDate', { fromDate: query.fromDate });

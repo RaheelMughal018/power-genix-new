@@ -1,6 +1,7 @@
 import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import { handleError } from '@/common/error-handlers/error.handler';
 import { generateInvoiceNumber } from '@/common/helpers/invoice-number.helper';
+import { applySearch } from '@/common/helpers/search-clause.helper';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { Item } from '@/items/entities/item.entity';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
@@ -34,12 +35,11 @@ export class RepairInvoicesService {
         .orderBy('ri.date', 'DESC')
         .addOrderBy('ri.id', 'DESC');
 
-      if (query.search) {
-        qb.andWhere(
-          '(ri.invoiceNumber ILIKE :search OR customer.name ILIKE :search OR ri.description ILIKE :search)',
-          { search: `%${query.search}%` },
-        );
-      }
+      applySearch(qb, query.search, {
+        text: ['ri.invoiceNumber', 'customer.name', 'ri.description'],
+        numeric: ['ri.totalAmount'],
+        date: ['ri.date'],
+      });
 
       if (query.customerId) {
         qb.andWhere('ri.customerId = :customerId', { customerId: query.customerId });

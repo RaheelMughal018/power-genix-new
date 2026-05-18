@@ -1,5 +1,6 @@
 import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import { handleError } from '@/common/error-handlers/error.handler';
+import { applySearch } from '@/common/helpers/search-clause.helper';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { Account } from '@/accounts/entities/account.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -48,9 +49,11 @@ export class ExpensesService {
         qb.andWhere('expense.date <= :toDate', { toDate: query.toDate });
       }
 
-      if (query.search) {
-        qb.andWhere('expense.description ILIKE :search', { search: `%${query.search}%` });
-      }
+      applySearch(qb, query.search, {
+        text: ['expense.description', 'expense.notes', 'category.name', 'account.name'],
+        numeric: ['expense.amount'],
+        date: ['expense.date'],
+      });
 
       const [data, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
 

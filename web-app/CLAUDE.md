@@ -64,6 +64,10 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 
 **Clickable elements in listings:** Supplier, Customer, Account names, Production batch#, and all Invoice numbers are clickable links to their detail pages (styled with `text-(--color-primary) hover:underline cursor-pointer`). Statement and history tab rows also link to the relevant invoice/payment detail page.
 
+**HistoryFilters:** `app/_shared/components/ui/historyFilters/historyFilters.tsx` — shared search + date-range filter used on all customer/supplier history tabs (purchase, sale, repair, payment) and statement tabs. Wires to backend `search`/`fromDate`/`toDate` query params; statement tabs use it for client-side filtering.
+
+**Statement tab pagination:** Customer and supplier statement tabs paginate rows client-side (statement endpoint returns the full timeline; pagination is purely display).
+
 **Layout:** Sidebar is fixed (h-screen), only main content area scrolls (`overflow-y-auto`, `overflow-x-hidden`).
 
 **Custom Date Picker:** All date inputs use the custom `Calendar` + `DatePicker` components (no native `<input type="date">`). Calendar drops down on desktop, slides up as bottom sheet on mobile.
@@ -88,6 +92,10 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 **Production Edit Cost Summary:** The cost summary shows averages across all units (not just unit[0]) and updates in real-time as items are edited.
 
 **Repair Invoice Line Totals:** `RepairInvoiceItem` has no `totalPrice` column — compute as `quantity × unitPrice` client-side.
+
+**Stock Adjustment Return-to-Supplier:** Form requires `unitPrice` when reason is `return_to_supplier` (backend validates). Listing shows a "Deducted From Supplier" column rendering `qty × unitPrice` (from row `deductionAmount`) for return rows, "—" otherwise.
+
+**Recipe PDF Export:** Recipe detail page has a "Download PDF" button calling `GET /recipes/:id/pdf` via `downloadFile()` (`recipe-<id>.pdf`).
 
 **Empty States:** All list pages must pass `emptyTitle`, `emptyDescription`, and `emptyAction` props to `DataTable` for when data is empty.
 

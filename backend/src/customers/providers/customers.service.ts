@@ -1,5 +1,6 @@
 import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import { handleError } from '@/common/error-handlers/error.handler';
+import { applySearch } from '@/common/helpers/search-clause.helper';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { CustomerPayment } from '@/customer-payments/entities/customer-payment.entity';
 import { RepairInvoice } from '@/repair-invoices/entities/repair-invoice.entity';
@@ -60,12 +61,10 @@ export class CustomersService {
         )
         .orderBy('customer.name', 'ASC');
 
-      if (query.search) {
-        qb.andWhere(
-          '(customer.name ILIKE :search OR customer.phone ILIKE :search OR customer.email ILIKE :search)',
-          { search: `%${query.search}%` },
-        );
-      }
+      applySearch(qb, query.search, {
+        text: ['customer.name', 'customer.phone', 'customer.email', 'customer.address'],
+        numeric: ['customer.openingBalance'],
+      });
 
       const { entities, raw } = await qb.skip(skip).take(limit).getRawAndEntities();
       const totalItems = await qb.getCount();
