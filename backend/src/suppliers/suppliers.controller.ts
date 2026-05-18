@@ -35,7 +35,7 @@ export class SuppliersController {
   constructor(
     private readonly suppliersService: SuppliersService,
     private readonly pdfService: PdfService,
-  ) {}
+  ) { }
 
   @ApiOperation({ summary: 'Get all suppliers (paginated, searchable)' })
   @ApiResponse({ status: 200, description: 'Suppliers retrieved successfully' })
@@ -67,6 +67,8 @@ export class SuppliersController {
   ) {
     return await this.suppliersService.getStatement(id, from, to);
   }
+
+  // TODO : create a pdf download functionality for statement
 
   @ApiOperation({ summary: 'Download supplier statement as PDF' })
   @ApiResponse({ status: 200, description: 'PDF file' })
