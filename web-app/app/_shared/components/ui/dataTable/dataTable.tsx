@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Input } from '@/app/_shared/components/ui/input/input';
 import { Pagination } from '@/app/_shared/components/ui/pagination/pagination';
 import { Button } from '@/app/_shared/components/ui/button/button';
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
 import { Spinner } from '@/app/_shared/components/ui/spinner/spinner';
+import { useDebounce } from '@/app/_shared/lib/hooks/useDebounce';
 import styles from './dataTable.module.scss';
 
 export interface Column<T> {
@@ -63,6 +64,24 @@ export function DataTable<T extends Record<string, unknown>>({
     if (onSort) onSort(key);
   };
 
+  const [localSearch, setLocalSearch] = useState(searchValue);
+  const debouncedSearch = useDebounce(localSearch, 400);
+  const lastEmitted = useRef(searchValue);
+
+  useEffect(() => {
+    if (searchValue !== lastEmitted.current) {
+      setLocalSearch(searchValue);
+      lastEmitted.current = searchValue;
+    }
+  }, [searchValue]);
+
+  useEffect(() => {
+    if (!onSearchChange) return;
+    if (debouncedSearch === lastEmitted.current) return;
+    lastEmitted.current = debouncedSearch;
+    onSearchChange(debouncedSearch);
+  }, [debouncedSearch, onSearchChange]);
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.toolbar}>
@@ -71,8 +90,8 @@ export function DataTable<T extends Record<string, unknown>>({
             <div className={styles.search}>
               <Input
                 placeholder={searchPlaceholder}
-                value={searchValue}
-                onChange={(e) => onSearchChange(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 size="sm"
               />
             </div>

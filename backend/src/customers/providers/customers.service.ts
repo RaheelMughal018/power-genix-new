@@ -256,18 +256,19 @@ export class CustomersService {
         repairAmount: number;
         amountReceived: number;
         balance: number;
+        notes: string;
       };
 
       const entries: Array<{ date: string; sortId: number; type: 'sale' | 'repair' | 'repair_foc' | 'payment'; row: Row }> = [];
 
       for (const s of sales) {
-        entries.push({ date: s.date, sortId: s.id, type: 'sale', row: { date: s.date, invoiceNumber: s.invoiceNumber, saleAmount: Number(s.totalAmount), repairAmount: 0, amountReceived: 0, balance: 0 } });
+        entries.push({ date: s.date, sortId: s.id, type: 'sale', row: { date: s.date, invoiceNumber: s.invoiceNumber, saleAmount: Number(s.totalAmount), repairAmount: 0, amountReceived: 0, balance: 0, notes: s.notes ?? '' } });
       }
       for (const r of repairs) {
-        entries.push({ date: r.date, sortId: r.id, type: r.isCharged ? 'repair' : 'repair_foc', row: { date: r.date, invoiceNumber: r.invoiceNumber, saleAmount: 0, repairAmount: Number(r.totalAmount), amountReceived: 0, balance: 0 } });
+        entries.push({ date: r.date, sortId: r.id, type: r.isCharged ? 'repair' : 'repair_foc', row: { date: r.date, invoiceNumber: r.invoiceNumber, saleAmount: 0, repairAmount: Number(r.totalAmount), amountReceived: 0, balance: 0, notes: r.description ?? '' } });
       }
       for (const p of payments) {
-        entries.push({ date: p.date, sortId: p.id, type: 'payment', row: { date: p.date, invoiceNumber: p.invoiceNumber, saleAmount: 0, repairAmount: 0, amountReceived: Number(p.amount), balance: 0 } });
+        entries.push({ date: p.date, sortId: p.id, type: 'payment', row: { date: p.date, invoiceNumber: p.invoiceNumber, saleAmount: 0, repairAmount: 0, amountReceived: Number(p.amount), balance: 0, notes: p.notes ?? '' } });
       }
 
       entries.sort((a, b) => a.date.localeCompare(b.date) || a.sortId - b.sortId);
@@ -296,6 +297,7 @@ export class CustomersService {
         rows: rows.map((r) => ({
           id: r.id,
           type: r.type,
+          notes: r.notes,
           'Date': r.date,
           'Invoice #': r.invoiceNumber,
           'Sale Amount': r.saleAmount,

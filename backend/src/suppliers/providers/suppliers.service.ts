@@ -265,18 +265,19 @@ export class SuppliersService {
         returnAmount: number;
         amountPaid: number;
         balance: number;
+        notes: string;
       };
 
       const entries: Array<{ date: string; sortId: number; type: 'invoice' | 'payment' | 'return'; row: Row }> = [];
 
       for (const inv of invoices) {
-        entries.push({ date: inv.date, sortId: inv.id, type: 'invoice', row: { date: inv.date, invoiceNumber: inv.invoiceNumber, purchaseAmount: Number(inv.totalAmount), returnAmount: 0, amountPaid: 0, balance: 0 } });
+        entries.push({ date: inv.date, sortId: inv.id, type: 'invoice', row: { date: inv.date, invoiceNumber: inv.invoiceNumber, purchaseAmount: Number(inv.totalAmount), returnAmount: 0, amountPaid: 0, balance: 0, notes: inv.notes ?? '' } });
       }
       for (const pay of payments) {
-        entries.push({ date: pay.date, sortId: pay.id, type: 'payment', row: { date: pay.date, invoiceNumber: pay.invoiceNumber, purchaseAmount: 0, returnAmount: 0, amountPaid: Number(pay.amount), balance: 0 } });
+        entries.push({ date: pay.date, sortId: pay.id, type: 'payment', row: { date: pay.date, invoiceNumber: pay.invoiceNumber, purchaseAmount: 0, returnAmount: 0, amountPaid: Number(pay.amount), balance: 0, notes: pay.notes ?? '' } });
       }
       for (const ret of returns) {
-        entries.push({ date: ret.date, sortId: ret.id, type: 'return', row: { date: ret.date, invoiceNumber: ret.item?.name ?? `Return #${ret.id}`, purchaseAmount: 0, returnAmount: Number(ret.deductionAmount ?? 0), amountPaid: 0, balance: 0 } });
+        entries.push({ date: ret.date, sortId: ret.id, type: 'return', row: { date: ret.date, invoiceNumber: ret.item?.name ?? `Return #${ret.id}`, purchaseAmount: 0, returnAmount: Number(ret.deductionAmount ?? 0), amountPaid: 0, balance: 0, notes: ret.notes ?? '' } });
       }
 
       entries.sort((a, b) => a.date.localeCompare(b.date) || a.sortId - b.sortId);
@@ -302,6 +303,7 @@ export class SuppliersService {
         rows: rows.map((r) => ({
           id: r.id,
           type: r.type,
+          notes: r.notes,
           'Date': r.date,
           'Invoice #': r.invoiceNumber,
           'Purchase Amount': r.purchaseAmount,

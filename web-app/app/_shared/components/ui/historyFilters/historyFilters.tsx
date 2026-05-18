@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/app/_shared/components/ui/input/input';
 import { DateRangePicker } from '@/app/_shared/components/ui/dateRangePicker/dateRangePicker';
+import { useDebounce } from '@/app/_shared/lib/hooks/useDebounce';
 
 interface HistoryFiltersProps {
   search: string;
@@ -20,9 +21,28 @@ export const HistoryFilters = ({
   searchPlaceholder = 'Search by invoice # or notes...',
 }: HistoryFiltersProps) => {
   const [pickerKey, setPickerKey] = useState(0);
-  const hasFilter = Boolean(search) || Boolean(dateRange);
+  const [localSearch, setLocalSearch] = useState(search);
+  const debouncedSearch = useDebounce(localSearch, 400);
+  const lastEmitted = useRef(search);
+
+  useEffect(() => {
+    if (search !== lastEmitted.current) {
+      setLocalSearch(search);
+      lastEmitted.current = search;
+    }
+  }, [search]);
+
+  useEffect(() => {
+    if (debouncedSearch === lastEmitted.current) return;
+    lastEmitted.current = debouncedSearch;
+    onSearchChange(debouncedSearch);
+  }, [debouncedSearch, onSearchChange]);
+
+  const hasFilter = Boolean(localSearch) || Boolean(dateRange);
 
   const handleClear = () => {
+    setLocalSearch('');
+    lastEmitted.current = '';
     onSearchChange('');
     onDateRangeChange(null);
     setPickerKey((k) => k + 1);
@@ -34,8 +54,8 @@ export const HistoryFilters = ({
         <Input
           size="sm"
           placeholder={searchPlaceholder}
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
         />
       </div>
       <DateRangePicker key={pickerKey} onChange={onDateRangeChange} />

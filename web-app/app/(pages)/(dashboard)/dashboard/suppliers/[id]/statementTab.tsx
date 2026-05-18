@@ -12,12 +12,14 @@ import { formatPKR } from '@/app/_shared/lib/utils/currency';
 import { formatDate } from '@/app/_shared/lib/utils/date';
 import { downloadPdf } from '@/app/_shared/lib/utils/download';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
+import { useDebounce } from '@/app/_shared/lib/hooks/useDebounce';
 
 interface StatementRow {
   id: number;
   type: 'invoice' | 'payment' | 'return';
   date: string;
   invoiceNumber: string;
+  notes: string;
   purchaseAmount: number;
   returnAmount: number;
   amountPaid: number;
@@ -40,6 +42,7 @@ interface StatementResponse {
 interface RawRow {
   id: number;
   type: 'invoice' | 'payment' | 'return';
+  notes?: string | null;
   'Date': string;
   'Invoice #': string;
   'Purchase Amount': number;
@@ -69,6 +72,7 @@ const unwrapStatement = (res: { data: unknown }): StatementResponse => {
     type: r.type,
     date: r['Date'],
     invoiceNumber: r['Invoice #'],
+    notes: r.notes ?? '',
     purchaseAmount: r['Purchase Amount'],
     returnAmount: r['Return Amount'] ?? 0,
     amountPaid: r['Amount Paid'],
@@ -91,6 +95,7 @@ export function StatementTab({ supplierId }: Props) {
   const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
   const [pickerKey, setPickerKey] = useState(0);
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -111,7 +116,7 @@ export function StatementTab({ supplierId }: Props) {
     fetchStatement(dateRange ?? {});
   }, [fetchStatement, dateRange]);
 
-  useEffect(() => { setPage(1); }, [search, dateRange]);
+  useEffect(() => { setPage(1); }, [debouncedSearch, dateRange]);
 
   const handleDateChange = (range: { from: string; to: string } | null) => {
     setDateRange(range);
@@ -139,9 +144,19 @@ export function StatementTab({ supplierId }: Props) {
 
   const allRows = statement?.rows ?? [];
   const footer = statement?.footer;
-  const term = search.trim().toLowerCase();
+  const term = debouncedSearch.trim().toLowerCase();
   const filteredRows = term
-    ? allRows.filter((r) => (r.invoiceNumber ?? '').toLowerCase().includes(term))
+    ? allRows.filter((r) => {
+        const haystack = [
+          r.invoiceNumber ?? '',
+          r.notes ?? '',
+          String(r.purchaseAmount ?? ''),
+          String(r.returnAmount ?? ''),
+          String(r.amountPaid ?? ''),
+          String(r.outstandingBalance ?? ''),
+        ].join(' ').toLowerCase();
+        return haystack.includes(term);
+      })
     : allRows;
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -156,7 +171,7 @@ export function StatementTab({ supplierId }: Props) {
           <div className="w-full sm:w-72">
             <Input
               size="sm"
-              placeholder="Search by invoice #..."
+              placeholder="Search by invoice #, amount, or notes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

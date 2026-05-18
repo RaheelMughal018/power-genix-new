@@ -21,7 +21,7 @@ export function applySearch<T extends ObjectLiteral>(
   if (opts.text?.length) {
     for (const col of opts.text) {
       const key = paramKey(col, 't');
-      conditions.push(`${col} ILIKE :${key}`);
+      conditions.push(`${quoteCol(col)} ILIKE :${key}`);
       params[key] = `%${raw}%`;
     }
   }
@@ -30,7 +30,7 @@ export function applySearch<T extends ObjectLiteral>(
   if (isNumeric && opts.numeric?.length) {
     for (const col of opts.numeric) {
       const key = paramKey(col, 'n');
-      conditions.push(`${col}::text LIKE :${key}`);
+      conditions.push(`${quoteCol(col)}::text LIKE :${key}`);
       params[key] = `${raw}%`;
     }
   }
@@ -39,7 +39,7 @@ export function applySearch<T extends ObjectLiteral>(
   if (isDatePrefix && opts.date?.length) {
     for (const col of opts.date) {
       const key = paramKey(col, 'd');
-      conditions.push(`to_char(${col}, 'YYYY-MM-DD') LIKE :${key}`);
+      conditions.push(`to_char(${quoteCol(col)}, 'YYYY-MM-DD') LIKE :${key}`);
       params[key] = `${raw}%`;
     }
   }
@@ -50,4 +50,11 @@ export function applySearch<T extends ObjectLiteral>(
 
 function paramKey(col: string, prefix: string): string {
   return `_s${prefix}_${col.replace(/[^a-zA-Z0-9]/g, '_')}`;
+}
+
+function quoteCol(col: string): string {
+  return col.replace(
+    /^([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)/,
+    '"$1"."$2"',
+  );
 }
