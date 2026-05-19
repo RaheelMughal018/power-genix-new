@@ -29,6 +29,8 @@ export function useProduction() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -44,6 +46,8 @@ export function useProduction() {
         limit: 10,
         search: search || undefined,
         status: statusFilter || undefined,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
       });
       const raw = response.data as { data?: BatchesResponse } & BatchesResponse;
       const resData = raw.data && Array.isArray((raw.data as BatchesResponse).data) ? raw.data as BatchesResponse : raw;
@@ -55,7 +59,7 @@ export function useProduction() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, statusFilter]);
+  }, [page, search, statusFilter, fromDate, toDate]);
 
   useEffect(() => { fetchBatches(); }, [fetchBatches]);
 
@@ -109,10 +113,17 @@ export function useProduction() {
     }
   };
 
+  const setDateRange = (range: { from: string; to: string } | null) => {
+    setFromDate(range?.from ?? '');
+    setToDate(range?.to ?? '');
+    setPage(1);
+  };
+
   return {
     batches, loading, page, search, statusFilter, totalPages, totalItems,
     setPage, setSearch: (v: string) => { setSearch(v); setPage(1); },
     setStatusFilter: (v: string) => { setStatusFilter(v); setPage(1); },
+    setDateRange,
     isDeleteDialogOpen, setIsDeleteDialogOpen, isCancelDialogOpen, setIsCancelDialogOpen,
     isActioning, selectedBatch, setSelectedBatch,
     handleComplete, handleCancel, handleDelete, refetch: fetchBatches,

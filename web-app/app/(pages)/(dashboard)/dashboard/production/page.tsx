@@ -15,7 +15,8 @@ export default function ProductionPage() {
   const router = useRouter();
   const {
     batches, loading, page, search, statusFilter, totalPages, totalItems,
-    setPage, setSearch, setStatusFilter, isDeleteDialogOpen, setIsDeleteDialogOpen,
+    setPage, setSearch, setStatusFilter, setDateRange,
+    isDeleteDialogOpen, setIsDeleteDialogOpen,
     isCancelDialogOpen, setIsCancelDialogOpen, isActioning,
     selectedBatch, setSelectedBatch, handleCancel, handleDelete,
   } = useProduction();
@@ -84,7 +85,12 @@ export default function ProductionPage() {
         </div>
       </div>
 
-      <FilterBar filters={statusFilterConfig} onFilterChange={handleFilterChange} />
+      <FilterBar
+        filters={statusFilterConfig}
+        onFilterChange={handleFilterChange}
+        showDateRange
+        onDateRangeChange={setDateRange}
+      />
 
       <DataTable
         columns={columns}

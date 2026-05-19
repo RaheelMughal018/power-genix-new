@@ -5,7 +5,7 @@ import { DatePicker } from '@/app/_shared/components/ui/datePicker/datePicker';
 import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import styles from './dateRangePicker.module.scss';
 
-type Preset = 'today' | 'thisMonth' | 'thisYear' | 'custom';
+type Preset = 'today' | 'thisWeek' | 'thisMonth' | 'thisYear' | 'custom';
 
 interface DateRangePickerProps {
   onChange: (range: { from: string; to: string } | null) => void;
@@ -21,6 +21,14 @@ const getPresetRange = (preset: Preset, fiscalYearStart: number): { from: string
   if (preset === 'today') {
     const iso = toLocalISO(now);
     return { from: iso, to: iso };
+  }
+
+  if (preset === 'thisWeek') {
+    const day = now.getDay();
+    const diffToMonday = (day + 6) % 7;
+    const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+    const to = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 6);
+    return { from: toLocalISO(from), to: toLocalISO(to) };
   }
 
   if (preset === 'thisMonth') {
@@ -42,6 +50,7 @@ const getPresetRange = (preset: Preset, fiscalYearStart: number): { from: string
 
 const PRESETS: { key: Preset; label: string }[] = [
   { key: 'today', label: 'Today' },
+  { key: 'thisWeek', label: 'This Week' },
   { key: 'thisMonth', label: 'This Month' },
   { key: 'thisYear', label: 'This Year' },
   { key: 'custom', label: 'Custom' },

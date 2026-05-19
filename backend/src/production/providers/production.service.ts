@@ -56,6 +56,14 @@ export class ProductionService {
         qb.andWhere('batch.status::text = :status', { status: query.status });
       }
 
+      if (query.fromDate) {
+        qb.andWhere('batch.productionDate >= :fromDate', { fromDate: query.fromDate });
+      }
+
+      if (query.toDate) {
+        qb.andWhere('batch.productionDate <= :toDate', { toDate: query.toDate });
+      }
+
       const [batches, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
 
       return {
