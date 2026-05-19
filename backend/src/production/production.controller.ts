@@ -1,6 +1,5 @@
 import { ActiveUser } from '@/common/decorators/active-user.decorator';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
-import { PaginationQueryDto } from '@/common/pagination/dtos/pagination-query.dto';
 import {
   Body,
   Controller,
@@ -24,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { CreateProductionDto } from './dtos/create-production.dto';
+import { ProductionQueryDto } from './dtos/production-query.dto';
 import { UpdateProductionDto } from './dtos/update-production.dto';
 import { ProductionService } from './providers/production.service';
 
@@ -36,8 +36,8 @@ export class ProductionController {
   @ApiOperation({ summary: 'Get all production batches (paginated)' })
   @ApiResponse({ status: 200, description: 'Batches retrieved successfully' })
   @Get()
-  async findAll(@Query() paginationQuery: PaginationQueryDto) {
-    return await this.productionService.findAll(paginationQuery);
+  async findAll(@Query() query: ProductionQueryDto) {
+    return await this.productionService.findAll(query);
   }
 
   @ApiOperation({ summary: 'Get production summary stats' })

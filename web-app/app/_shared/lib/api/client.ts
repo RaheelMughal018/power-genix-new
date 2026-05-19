@@ -101,7 +101,7 @@ export const recipesApi = {
 
 // Production API
 export const productionApi = {
-  getAll: (params: { page?: number; limit?: number; search?: string }) =>
+  getAll: (params: { page?: number; limit?: number; search?: string; status?: string }) =>
     apiClient.get('/production', params),
   getById: (id: number) => apiClient.get(`/production/${id}`),
   getSummary: () => apiClient.get('/production/summary'),

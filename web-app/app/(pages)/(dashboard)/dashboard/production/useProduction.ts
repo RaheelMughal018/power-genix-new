@@ -28,6 +28,7 @@ export function useProduction() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -38,7 +39,12 @@ export function useProduction() {
   const fetchBatches = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await productionApi.getAll({ page, limit: 10, search: search || undefined });
+      const response = await productionApi.getAll({
+        page,
+        limit: 10,
+        search: search || undefined,
+        status: statusFilter || undefined,
+      });
       const raw = response.data as { data?: BatchesResponse } & BatchesResponse;
       const resData = raw.data && Array.isArray((raw.data as BatchesResponse).data) ? raw.data as BatchesResponse : raw;
       setBatches(Array.isArray(resData.data) ? resData.data : []);
@@ -49,7 +55,7 @@ export function useProduction() {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, statusFilter]);
 
   useEffect(() => { fetchBatches(); }, [fetchBatches]);
 
@@ -104,8 +110,9 @@ export function useProduction() {
   };
 
   return {
-    batches, loading, page, search, totalPages, totalItems,
+    batches, loading, page, search, statusFilter, totalPages, totalItems,
     setPage, setSearch: (v: string) => { setSearch(v); setPage(1); },
+    setStatusFilter: (v: string) => { setStatusFilter(v); setPage(1); },
     isDeleteDialogOpen, setIsDeleteDialogOpen, isCancelDialogOpen, setIsCancelDialogOpen,
     isActioning, selectedBatch, setSelectedBatch,
     handleComplete, handleCancel, handleDelete, refetch: fetchBatches,

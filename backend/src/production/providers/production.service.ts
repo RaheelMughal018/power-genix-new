@@ -1,8 +1,8 @@
 import { Account } from '@/accounts/entities/account.entity';
 import { Recipe } from '@/recipes/entities/recipe.entity';
 import { handleError } from '@/common/error-handlers/error.handler';
+import { applySearch } from '@/common/helpers/search-clause.helper';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
-import { PaginationQueryDto } from '@/common/pagination/dtos/pagination-query.dto';
 import {
   BadRequestException,
   Injectable,
@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { UpdateProductionDto } from '../dtos/update-production.dto';
 import { CreateProductionDto } from '../dtos/create-production.dto';
+import { ProductionQueryDto } from '../dtos/production-query.dto';
 import { ProductionBatch } from '../entities/production-batch.entity';
 import { ProductionUnit } from '../entities/production-unit.entity';
 import { ProductionUnitItem } from '../entities/production-unit-item.entity';
@@ -33,10 +34,10 @@ export class ProductionService {
     private readonly refreshPricesProvider: RefreshPricesProvider,
   ) {}
 
-  async findAll(paginationQuery: PaginationQueryDto) {
+  async findAll(query: ProductionQueryDto) {
     try {
-      const limit = paginationQuery.limit || 10;
-      const page = paginationQuery.page || 1;
+      const limit = query.limit || 10;
+      const page = query.page || 1;
       const skip = (page - 1) * limit;
 
       const qb = this.batchRepository
@@ -46,10 +47,13 @@ export class ProductionService {
         .leftJoinAndSelect('batch.createdBy', 'createdBy')
         .orderBy('batch.created_at', 'DESC');
 
-      if (paginationQuery.search) {
-        qb.andWhere('batch.batchNumber ILIKE :search', {
-          search: `%${paginationQuery.search}%`,
-        });
+      applySearch(qb, query.search, {
+        text: ['batch.batchNumber', 'recipe.name', 'finalProduct.name'],
+        numeric: ['batch.totalCost'],
+      });
+
+      if (query.status) {
+        qb.andWhere('batch.status::text = :status', { status: query.status });
       }
 
       const [batches, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();

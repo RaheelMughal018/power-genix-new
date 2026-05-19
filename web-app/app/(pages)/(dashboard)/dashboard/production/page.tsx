@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { DataTable, type Column } from '@/app/_shared/components/ui/dataTable/dataTable';
 import { ConfirmDialog } from '@/app/_shared/components/ui/confirmDialog/confirmDialog';
 import { Button } from '@/app/_shared/components/ui/button/button';
+import { FilterBar } from '@/app/_shared/components/ui/filterBar/filterBar';
 import { StatusBadge } from '@/app/_shared/components/ui/statusBadge/statusBadge';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
@@ -13,11 +14,27 @@ import { useProduction } from './useProduction';
 export default function ProductionPage() {
   const router = useRouter();
   const {
-    batches, loading, page, search, totalPages, totalItems,
-    setPage, setSearch, isDeleteDialogOpen, setIsDeleteDialogOpen,
+    batches, loading, page, search, statusFilter, totalPages, totalItems,
+    setPage, setSearch, setStatusFilter, isDeleteDialogOpen, setIsDeleteDialogOpen,
     isCancelDialogOpen, setIsCancelDialogOpen, isActioning,
     selectedBatch, setSelectedBatch, handleCancel, handleDelete,
   } = useProduction();
+
+  const statusFilterConfig = [
+    {
+      key: 'status',
+      label: 'Status',
+      value: statusFilter,
+      options: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Completed', value: 'completed' },
+      ],
+    },
+  ];
+
+  const handleFilterChange = (key: string, value: string) => {
+    if (key === 'status') setStatusFilter(value);
+  };
 
   const columns: Column<(typeof batches)[0]>[] = [
     {
@@ -66,6 +83,8 @@ export default function ProductionPage() {
           <p className="text-(--color-text-secondary)">Manage manufacturing batches</p>
         </div>
       </div>
+
+      <FilterBar filters={statusFilterConfig} onFilterChange={handleFilterChange} />
 
       <DataTable
         columns={columns}
