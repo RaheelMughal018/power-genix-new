@@ -10,6 +10,8 @@ import { productionApi, itemsApi, accountsApi } from '@/app/_shared/lib/api/clie
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
+import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 
 interface RawMaterial { id: number; name: string; averagePrice: number; unit: string; }
 interface AccountOption { id: number; name: string; type: string; currentBalance: number; }
@@ -19,6 +21,7 @@ interface Unit { id?: number; serialNumber: string; items: UnitItem[]; }
 interface BatchDetail {
   id: number; batchNumber: string; quantity: number; status: string;
   copperAmount: number; copperAccountId: number | null; notes: string | null;
+  productionDate?: string | null;
   recipe: { id: number; name: string; additionalExpense?: number; finalProduct: { id: number; name: string } };
   units?: Array<{ id: number; serialNumber: string; unitCost: number; items?: Array<{ itemId: number; quantity: number; unitPrice: number }> }>;
   productionUnits?: Array<{ id: number; serialNumber: string; unitCost: number; productionUnitItems?: Array<{ itemId: number; item?: { id: number }; quantity: number; unitPrice: number }> }>;
@@ -37,6 +40,7 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
   const [copperAmount, setCopperAmount] = useState<number>(0);
   const [copperAccountId, setCopperAccountId] = useState<number>(0);
   const [notes, setNotes] = useState('');
+  const [productionDate, setProductionDate] = useState(toLocalISO(new Date()));
   const [units, setUnits] = useState<Unit[]>([]);
   const [editMode, setEditMode] = useState<'batch' | 'individual'>('batch');
   const [refreshingPrices, setRefreshingPrices] = useState(false);
@@ -66,6 +70,7 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
         setCopperAmount(Number(b.copperAmount) || 0);
         setCopperAccountId(b.copperAccountId || 0);
         setNotes(b.notes || '');
+        if (b.productionDate) setProductionDate(String(b.productionDate).slice(0, 10));
 
         const allUnits = b.productionUnits || b.units || [];
         setUnits(allUnits.map((u) => {
@@ -171,11 +176,16 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
   const totalCost = unitCosts.reduce((sum, c) => sum + c, 0);
 
   const handleSubmit = async () => {
+    if (!productionDate) {
+      addToast({ title: 'Error', description: 'Select a production date', variant: 'error' });
+      return;
+    }
     setSubmitting(true);
     try {
       await productionApi.update(Number(id), {
         copperAmount, copperAccountId: copperAccountId || undefined,
         notes: notes || undefined,
+        productionDate,
         units: units.map((u) => ({ serialNumber: u.serialNumber, items: u.items })),
       });
       addToast({ title: 'Success', description: 'Production batch updated', variant: 'success' });
@@ -212,6 +222,7 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
       <div className="bg-(--color-bg-primary) border border-(--color-border) rounded-xl p-6 space-y-5">
         <h2 className="text-base font-semibold text-(--color-text-primary)">Cost & Account</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <DateInput value={productionDate} onChange={setProductionDate} label="Production Date" required />
           <Input id="copperAmount" type="number" label="Copper Amount" min={0} value={String(copperAmount || '')}
             onChange={(e) => setCopperAmount(Number(e.target.value))} />
           <SearchableDropdown

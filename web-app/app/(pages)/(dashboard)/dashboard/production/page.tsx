@@ -7,6 +7,7 @@ import { Button } from '@/app/_shared/components/ui/button/button';
 import { StatusBadge } from '@/app/_shared/components/ui/statusBadge/statusBadge';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 import { useProduction } from './useProduction';
 
 export default function ProductionPage() {
@@ -34,9 +35,9 @@ export default function ProductionPage() {
     },
     { key: 'recipe', label: 'Recipe/Product', render: (row) => row.recipe?.finalProduct?.name || row.recipe?.name || '-' },
     { key: 'quantity', label: 'Qty', render: (row) => String(row.quantity) },
+    { key: 'productionDate', label: 'Production Date', render: (row) => row.productionDate ? formatDate(row.productionDate) : '-' },
     { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status as 'pending' | 'completed' | 'cancelled'} /> },
     { key: 'totalCost', label: 'Cost', render: (row) => formatPKR(row.totalCost) },
-    { key: 'created_at', label: 'Created On', render: (row) => new Date(row.created_at).toLocaleDateString() },
     { key: 'createdBy', label: 'Created By', render: (row) => row.createdBy ? `${row.createdBy.firstName} ${row.createdBy.lastName}` : '-' },
     {
       key: 'actions', label: 'Actions', width: '200px',

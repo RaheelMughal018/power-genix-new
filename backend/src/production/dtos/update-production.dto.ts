@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsDateString,
   IsInt,
   IsNumber,
   IsOptional,
@@ -12,6 +13,11 @@ import {
 import { ProductionUnitDto } from './create-production.dto';
 
 export class UpdateProductionDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  productionDate?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()

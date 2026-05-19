@@ -9,7 +9,9 @@ import { useToast } from '@/app/_shared/components/ui/toast/toast';
 import { recipesApi, itemsApi, accountsApi, productionApi } from '@/app/_shared/lib/api/client';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { toLocalISO } from '@/app/_shared/lib/utils/date';
 import { SearchableDropdown } from '@/app/_shared/components/ui/searchableDropdown/searchableDropdown';
+import { DateInput } from '@/app/_shared/components/ui/dateInput/dateInput';
 
 interface RecipeOption { id: number; name: string; finalProduct: { id: number; name: string }; additionalExpense?: number; }
 interface RawMaterial { id: number; name: string; averagePrice: number; unit: string; }
@@ -28,6 +30,7 @@ export default function CreateProductionPage() {
 
   const [recipeId, setRecipeId] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(1);
+  const [productionDate, setProductionDate] = useState(toLocalISO(new Date()));
   const [copperAmount, setCopperAmount] = useState<number>(0);
   const [copperAccountId, setCopperAccountId] = useState<number>(0);
   const [recipeExpense, setRecipeExpense] = useState<number>(0);
@@ -202,10 +205,14 @@ export default function CreateProductionPage() {
       addToast({ title: 'Error', description: 'Select a recipe and set quantity', variant: 'error' });
       return;
     }
+    if (!productionDate) {
+      addToast({ title: 'Error', description: 'Select a production date', variant: 'error' });
+      return;
+    }
     setSubmitting(true);
     try {
       await productionApi.create({
-        recipeId, quantity, copperAmount, copperAccountId: copperAccountId || undefined,
+        recipeId, quantity, productionDate, copperAmount, copperAccountId: copperAccountId || undefined,
         notes: notes || undefined, units,
       });
       addToast({ title: 'Success', description: 'Production batch created', variant: 'success' });
@@ -238,6 +245,10 @@ export default function CreateProductionPage() {
           />
           <Input id="quantity" type="number" label="Quantity *" min={1} value={String(quantity)}
             onChange={(e) => handleQuantityChange(Number(e.target.value))} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <DateInput value={productionDate} onChange={setProductionDate} label="Production Date" required />
         </div>
 
         <div className="grid grid-cols-2 gap-4">

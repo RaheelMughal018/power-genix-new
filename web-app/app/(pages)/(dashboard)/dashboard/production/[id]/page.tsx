@@ -10,6 +10,7 @@ import { StatusBadge } from '@/app/_shared/components/ui/statusBadge/statusBadge
 import { ConfirmDialog } from '@/app/_shared/components/ui/confirmDialog/confirmDialog';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { formatDate } from '@/app/_shared/lib/utils/date';
 
 interface BomAggRow { itemId: number; itemName: string; unit: string; totalQty: number; unitPrice: number; }
 interface RecipeItem { id: number; item: { id: number; name: string; averagePrice: number; unit: string }; quantity: number; }
@@ -18,6 +19,7 @@ interface Unit { id: number; serialNumber: string; unitCost: number; productionU
 interface BatchDetail {
   id: number; batchNumber: string; quantity: number; status: string;
   totalCost: number; copperAmount: number; notes: string;
+  productionDate?: string | null;
   recipe: { id: number; name: string; additionalExpense?: number; finalProduct: { id: number; name: string }; recipeItems?: RecipeItem[] };
   copperAccount: { id: number; name: string } | null;
   productionUnits?: Unit[];
@@ -190,6 +192,10 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
             <p className="text-sm font-semibold text-(--color-text-primary)">{batch.quantity} units</p>
           </div>
           <div>
+            <p className="text-[10px] text-(--color-text-secondary) uppercase tracking-widest font-medium mb-1">Production Date</p>
+            <p className="text-sm font-semibold text-(--color-text-primary)">{batch.productionDate ? formatDate(batch.productionDate) : '-'}</p>
+          </div>
+          <div>
             <p className="text-[10px] text-(--color-text-secondary) uppercase tracking-widest font-medium mb-1">Status</p>
             <StatusBadge status={batch.status as 'pending' | 'completed' | 'cancelled'} />
           </div>
@@ -223,10 +229,6 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
         <div className="p-3 rounded-lg border border-(--color-border) bg-(--color-bg-primary)">
           <p className="text-[10px] text-(--color-text-secondary) uppercase tracking-widest font-medium mb-1">Created By</p>
           <p className="font-medium text-(--color-text-primary)">{batch.createdBy?.firstName} {batch.createdBy?.lastName}</p>
-        </div>
-        <div className="p-3 rounded-lg border border-(--color-border) bg-(--color-bg-primary)">
-          <p className="text-[10px] text-(--color-text-secondary) uppercase tracking-widest font-medium mb-1">Created At</p>
-          <p className="font-medium text-(--color-text-primary)">{new Date(batch.created_at).toLocaleDateString()}</p>
         </div>
       </div>
 

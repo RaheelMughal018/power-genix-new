@@ -33,6 +33,9 @@ export class ProductionBatch {
   @Column({ type: 'int' })
   quantity: number;
 
+  @Column({ type: 'date' })
+  productionDate: string;
+
   @Column({ type: 'enum', enum: ProductionStatus, default: ProductionStatus.PENDING })
   status: ProductionStatus;
 

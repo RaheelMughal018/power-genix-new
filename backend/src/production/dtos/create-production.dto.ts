@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsDateString,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -50,6 +51,10 @@ export class CreateProductionDto {
   @IsInt()
   @IsPositive()
   quantity: number;
+
+  @ApiProperty()
+  @IsDateString()
+  productionDate: string;
 
   @ApiPropertyOptional()
   @IsOptional()

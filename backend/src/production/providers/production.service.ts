@@ -193,6 +193,7 @@ export class ProductionService {
       if (dto.copperAmount !== undefined) batch.copperAmount = dto.copperAmount;
       if (dto.copperAccountId !== undefined) batch.copperAccountId = dto.copperAccountId;
       if (dto.notes !== undefined) batch.notes = dto.notes;
+      if (dto.productionDate !== undefined) batch.productionDate = dto.productionDate;
 
       if (dto.units !== undefined) {
         // Delete existing unit items then units using raw queries for reliable cascade
@@ -253,6 +254,7 @@ export class ProductionService {
         copperAmount: batch.copperAmount,
         copperAccountId: batch.copperAccountId,
         notes: batch.notes,
+        productionDate: batch.productionDate,
         totalCost: batch.totalCost,
       });
 
@@ -377,6 +379,7 @@ export class ProductionService {
         'Recipe',
         'Final Product',
         'Quantity',
+        'Production Date',
         'Status',
         'Copper Amount',
         'Total Cost',
@@ -389,6 +392,7 @@ export class ProductionService {
         b.recipe ? `"${b.recipe.name.replace(/"/g, '""')}"` : '',
         b.recipe?.finalProduct ? `"${b.recipe.finalProduct.name.replace(/"/g, '""')}"` : '',
         b.quantity,
+        b.productionDate ?? '',
         b.status,
         Number(b.copperAmount),
         Number(b.totalCost),
@@ -407,6 +411,7 @@ export class ProductionService {
       batchNumber: batch.batchNumber,
       recipe: batch.recipe,
       quantity: batch.quantity,
+      productionDate: batch.productionDate,
       status: batch.status,
       copperAmount: Number(batch.copperAmount),
       totalCost: Number(batch.totalCost),

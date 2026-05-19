@@ -62,6 +62,7 @@ export class CreateProductionProvider {
         batchNumber,
         recipeId: dto.recipeId,
         quantity: dto.quantity,
+        productionDate: dto.productionDate,
         status: ProductionStatus.PENDING,
         copperAmount,
         copperAccountId: dto.copperAccountId ?? null,

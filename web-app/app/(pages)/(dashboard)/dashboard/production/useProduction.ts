@@ -9,6 +9,7 @@ interface BatchListItem extends Record<string, unknown> {
   batchNumber: string;
   recipe: { id: number; name: string; finalProduct: { name: string } };
   quantity: number;
+  productionDate: string;
   status: string;
   totalCost: number;
   copperAmount: number;

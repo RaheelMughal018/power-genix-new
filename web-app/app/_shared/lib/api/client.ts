@@ -108,7 +108,7 @@ export const productionApi = {
   generateSerials: (quantity: number) =>
     apiClient.get('/production/generate-serials', { quantity }),
   create: (data: {
-    recipeId: number; quantity: number; copperAmount?: number; copperAccountId?: number;
+    recipeId: number; quantity: number; productionDate: string; copperAmount?: number; copperAccountId?: number;
     notes?: string; units: Array<{ serialNumber: string; items: Array<{ itemId: number; quantity: number; unitPrice: number }> }>;
   }) => apiClient.post('/production', data),
   complete: (id: number) => apiClient.post(`/production/${id}/complete`),
