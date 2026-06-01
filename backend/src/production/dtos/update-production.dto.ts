@@ -4,8 +4,10 @@ import {
   IsArray,
   IsDateString,
   IsInt,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   Min,
   ValidateNested,
@@ -13,6 +15,18 @@ import {
 import { ProductionUnitDto } from './create-production.dto';
 
 export class UpdateProductionDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  batchNumber?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  quantity?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()

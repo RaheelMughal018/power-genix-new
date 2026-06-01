@@ -114,8 +114,8 @@ export function SaleLineItems({ lineItems, onLineItemsChange, itemOptions, disco
         <table className="w-full text-sm">
           <thead className="bg-(--color-bg-secondary)">
             <tr>
-              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium">Item</th>
-              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium w-40">Serial #</th>
+              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium w-2/5">Item</th>
+              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium w-1/3">Serial #</th>
               <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-20">Qty</th>
               <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-28">Unit Price</th>
               <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-28">Total</th>
