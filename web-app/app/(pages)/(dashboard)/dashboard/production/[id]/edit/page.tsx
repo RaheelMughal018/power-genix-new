@@ -37,6 +37,8 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
   const [accounts, setAccounts] = useState<AccountOption[]>([]);
   const [batch, setBatch] = useState<BatchDetail | null>(null);
 
+  const [batchNumber, setBatchNumber] = useState('');
+  const [quantity, setQuantity] = useState<number>(1);
   const [copperAmount, setCopperAmount] = useState<number>(0);
   const [copperAccountId, setCopperAccountId] = useState<number>(0);
   const [notes, setNotes] = useState('');
@@ -44,6 +46,7 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
   const [units, setUnits] = useState<Unit[]>([]);
   const [editMode, setEditMode] = useState<'batch' | 'individual'>('batch');
   const [refreshingPrices, setRefreshingPrices] = useState(false);
+  const [syncingQuantity, setSyncingQuantity] = useState(false);
 
   const unwrap = <T,>(res: { data: unknown }): T[] => {
     const raw = res.data as { data?: { data: T[] } } & { data: T[] };
@@ -67,6 +70,8 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
         const b = (rawBatch.data || rawBatch) as BatchDetail;
         setBatch(b);
 
+        setBatchNumber(b.batchNumber || '');
+        setQuantity(Number(b.quantity) || 1);
         setCopperAmount(Number(b.copperAmount) || 0);
         setCopperAccountId(b.copperAccountId || 0);
         setNotes(b.notes || '');
@@ -145,6 +150,31 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
     setUnits(updated);
   };
 
+  const syncUnitsToQuantity = async (targetQty: number) => {
+    if (targetQty < 1 || targetQty === units.length) return;
+    if (targetQty < units.length) {
+      setUnits(units.slice(0, targetQty));
+      return;
+    }
+    setSyncingQuantity(true);
+    try {
+      const additional = targetQty - units.length;
+      const serialRes = await productionApi.generateSerials(additional);
+      const rawSer = serialRes.data as { data?: { serials?: string[] } } & { serials?: string[] };
+      const serials = (rawSer.data as { serials?: string[] })?.serials || rawSer.serials || [];
+      const baseItems = units[0]?.items.map((i) => ({ ...i })) || [];
+      const newUnits: Unit[] = Array.from({ length: additional }, (_, i) => ({
+        serialNumber: serials[i] || '',
+        items: baseItems.map((item) => ({ ...item })),
+      }));
+      setUnits([...units, ...newUnits]);
+    } catch {
+      addToast({ title: 'Error', description: 'Failed to generate serial numbers', variant: 'error' });
+    } finally {
+      setSyncingQuantity(false);
+    }
+  };
+
   const refreshPrices = async () => {
     if (units.length === 0) return;
     setRefreshingPrices(true);
@@ -167,7 +197,6 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  const quantity = batch?.quantity || 0;
   const recipeExpense = Number(batch?.recipe?.additionalExpense) || 0;
   const copperPerUnit = quantity > 0 ? copperAmount / quantity : 0;
   const unitCosts = units.map((u) =>
@@ -180,9 +209,19 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
       addToast({ title: 'Error', description: 'Select a production date', variant: 'error' });
       return;
     }
+    if (!batchNumber.trim()) {
+      addToast({ title: 'Error', description: 'Batch number is required', variant: 'error' });
+      return;
+    }
+    if (quantity !== units.length) {
+      addToast({ title: 'Error', description: `Quantity (${quantity}) must match units (${units.length}). Adjust or apply quantity first.`, variant: 'error' });
+      return;
+    }
     setSubmitting(true);
     try {
       await productionApi.update(Number(id), {
+        batchNumber: batchNumber.trim(),
+        quantity,
         copperAmount, copperAccountId: copperAccountId || undefined,
         notes: notes || undefined,
         productionDate,
@@ -213,14 +252,30 @@ export default function EditProductionPage({ params }: { params: Promise<{ id: s
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-(--color-text-secondary) uppercase tracking-wide mb-1">Edit Production</p>
-          <h1 className="text-2xl font-bold text-(--color-text-primary)">{batch.batchNumber}</h1>
-          <p className="text-sm text-(--color-text-secondary)">{batch.recipe?.name} — {batch.recipe?.finalProduct?.name} × {batch.quantity}</p>
+          <p className="text-sm text-(--color-text-secondary)">{batch.recipe?.name} — {batch.recipe?.finalProduct?.name}</p>
         </div>
         <Button variant="outline" onClick={() => router.push(`${ROUTES.PRODUCTION}/${id}`)}>← Back</Button>
       </div>
 
       <div className="bg-(--color-bg-primary) border border-(--color-border) rounded-xl p-6 space-y-5">
-        <h2 className="text-base font-semibold text-(--color-text-primary)">Cost & Account</h2>
+        <h2 className="text-base font-semibold text-(--color-text-primary)">Batch Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input id="batchNumber" label="Batch Number" required value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} />
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <Input id="quantity" type="number" label="Quantity" required min={1} value={String(quantity || '')}
+                onChange={(e) => setQuantity(Number(e.target.value))} />
+            </div>
+            <Button size="md" variant="outline" onClick={() => syncUnitsToQuantity(quantity)} isLoading={syncingQuantity} disabled={quantity === units.length || quantity < 1}>
+              Apply
+            </Button>
+          </div>
+        </div>
+        {quantity !== units.length && (
+          <p className="text-xs text-(--color-warning-600)">
+            Quantity ({quantity}) differs from units ({units.length}). Click Apply to sync.
+          </p>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <DateInput value={productionDate} onChange={setProductionDate} label="Production Date" required />
           <Input id="copperAmount" type="number" label="Copper Amount" min={0} value={String(copperAmount || '')}

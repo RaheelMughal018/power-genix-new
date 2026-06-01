@@ -202,6 +202,27 @@ export class ProductionService {
         }
       }
 
+      if (dto.batchNumber !== undefined && dto.batchNumber !== batch.batchNumber) {
+        const existing = await queryRunner.manager.findOne(ProductionBatch, {
+          where: { batchNumber: dto.batchNumber },
+        });
+        if (existing && existing.id !== id) {
+          throw new BadRequestException(
+            `Batch number "${dto.batchNumber}" is already in use`,
+          );
+        }
+        batch.batchNumber = dto.batchNumber;
+      }
+
+      if (dto.quantity !== undefined && dto.quantity !== batch.quantity) {
+        if (dto.units && dto.units.length !== dto.quantity) {
+          throw new BadRequestException(
+            `Quantity (${dto.quantity}) must match units count (${dto.units.length})`,
+          );
+        }
+        batch.quantity = dto.quantity;
+      }
+
       if (dto.copperAmount !== undefined) batch.copperAmount = dto.copperAmount;
       if (dto.copperAccountId !== undefined) batch.copperAccountId = dto.copperAccountId;
       if (dto.notes !== undefined) batch.notes = dto.notes;
@@ -263,6 +284,8 @@ export class ProductionService {
       }
 
       await queryRunner.manager.update(ProductionBatch, id, {
+        batchNumber: batch.batchNumber,
+        quantity: batch.quantity,
         copperAmount: batch.copperAmount,
         copperAccountId: batch.copperAccountId,
         notes: batch.notes,
