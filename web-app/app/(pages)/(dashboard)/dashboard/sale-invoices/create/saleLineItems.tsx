@@ -114,11 +114,11 @@ export function SaleLineItems({ lineItems, onLineItemsChange, itemOptions, disco
         <table className="w-full text-sm">
           <thead className="bg-(--color-bg-secondary)">
             <tr>
-              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium w-2/5">Item</th>
-              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium w-1/3">Serial #</th>
+              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium w-1/3">Item</th>
+              <th className="text-left px-3 py-2 text-(--color-text-secondary) font-medium w-1/4">Serial #</th>
               <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-20">Qty</th>
-              <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-28">Unit Price</th>
-              <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-28">Total</th>
+              <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-36">Unit Price</th>
+              <th className="text-right px-3 py-2 text-(--color-text-secondary) font-medium w-36">Total</th>
               <th className="w-10" />
             </tr>
           </thead>
@@ -163,7 +163,7 @@ export function SaleLineItems({ lineItems, onLineItemsChange, itemOptions, disco
                     className="w-full px-2 py-1.5 rounded border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm text-right"
                   />
                 </td>
-                <td className="px-3 py-2 text-right font-medium text-(--color-text-primary)">{formatPKR(li.totalPrice)}</td>
+                <td className="px-3 py-2 text-right font-medium text-(--color-text-primary) whitespace-nowrap">{formatPKR(li.totalPrice)}</td>
                 <td className="px-3 py-2">
                   <button
                     onClick={() => removeRow(li.id)}
