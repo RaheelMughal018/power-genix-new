@@ -96,7 +96,7 @@ export default function PurchaseInvoicesPage() {
         onExportCsv={handleExportCsv}
         footerRow={footerRow}
         actions={
-          <Button variant="primary" onClick={() => router.push(ROUTES.PURCHASE_INVOICE_CREATE)}>
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.PURCHASE_INVOICE_CREATE)}>
             Add Purchase
           </Button>
         }

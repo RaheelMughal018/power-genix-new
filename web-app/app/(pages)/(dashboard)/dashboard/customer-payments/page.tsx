@@ -98,7 +98,7 @@ export default function CustomerPaymentsPage() {
         onExportCsv={handleExportCsv}
         footerRow={footerRow}
         actions={
-          <Button variant="primary" onClick={() => router.push(ROUTES.CUSTOMER_PAYMENT_CREATE)}>
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.CUSTOMER_PAYMENT_CREATE)}>
             Add Payment
           </Button>
         }

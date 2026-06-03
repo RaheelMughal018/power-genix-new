@@ -96,7 +96,7 @@ export default function SaleInvoicesPage() {
         onExportCsv={handleExportCsv}
         footerRow={footerRow}
         actions={
-          <Button variant="primary" onClick={() => router.push(ROUTES.SALE_INVOICE_CREATE)}>
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.SALE_INVOICE_CREATE)}>
             Add Sale
           </Button>
         }

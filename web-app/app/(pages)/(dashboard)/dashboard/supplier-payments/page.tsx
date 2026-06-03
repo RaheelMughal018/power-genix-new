@@ -98,7 +98,7 @@ export default function SupplierPaymentsPage() {
         onExportCsv={handleExportCsv}
         footerRow={footerRow}
         actions={
-          <Button variant="primary" onClick={() => router.push(ROUTES.SUPPLIER_PAYMENT_CREATE)}>
+          <Button size="sm" variant="primary" onClick={() => router.push(ROUTES.SUPPLIER_PAYMENT_CREATE)}>
             Add Payment
           </Button>
         }

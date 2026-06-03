@@ -251,7 +251,7 @@ export default function DashboardLayout({
       />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b border-[var(--color-border)] flex items-center justify-between px-6 md:hidden">
           <Link href={ROUTES.DASHBOARD} className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-[var(--color-primary-600)] flex items-center justify-center flex-shrink-0">
