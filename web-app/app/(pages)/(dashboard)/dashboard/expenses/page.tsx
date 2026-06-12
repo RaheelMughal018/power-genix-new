@@ -92,7 +92,13 @@ export default function ExpensesPage() {
           fromDate: fromDate || undefined,
           toDate: toDate || undefined,
         }),
-        expensesApi.getTotal(),
+        expensesApi.getTotal({
+          search: search || undefined,
+          categoryId,
+          accountId,
+          fromDate: fromDate || undefined,
+          toDate: toDate || undefined,
+        }),
       ]);
 
       const raw = expRes.data as { data?: ExpensesResponse } & ExpensesResponse;

@@ -39,11 +39,11 @@ export class ExpensesController {
     return await this.expensesService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Get total expense amount' })
+  @ApiOperation({ summary: 'Get total expense amount (respects filters)' })
   @ApiResponse({ status: 200, description: 'Total expense amount' })
   @Get('total')
-  async getTotal() {
-    return await this.expensesService.getTotalExpenseAmount();
+  async getTotal(@Query() query: ExpenseQueryDto) {
+    return await this.expensesService.getTotalExpenseAmount(query);
   }
 
   @ApiOperation({ summary: 'Export expenses as CSV' })
