@@ -175,7 +175,8 @@ export const expensesApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; categoryId?: number; accountId?: number; fromDate?: string; toDate?: string }) =>
     apiClient.get('/expenses', params),
   getById: (id: number) => apiClient.get(`/expenses/${id}`),
-  getTotal: () => apiClient.get('/expenses/total'),
+  getTotal: (params?: { search?: string; categoryId?: number; accountId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/expenses/total', params),
   createBatch: (data: { expenses: Array<{ date: string; description: string; amount: number; categoryId: number; accountId: number; notes?: string }> }) =>
     apiClient.post('/expenses', data),
   update: (id: number, data: { date?: string; description?: string; amount?: number; categoryId?: number; accountId?: number; notes?: string }) =>

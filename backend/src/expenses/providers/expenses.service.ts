@@ -229,13 +229,38 @@ export class ExpensesService {
     }
   }
 
-  async getTotalExpenseAmount() {
+  async getTotalExpenseAmount(query: ExpenseQueryDto = {} as ExpenseQueryDto) {
     try {
-      const result = await this.repo
+      const qb = this.repo
         .createQueryBuilder('expense')
+        .leftJoin('expense.category', 'category')
+        .leftJoin('expense.account', 'account')
         .where('expense.deletedAt IS NULL')
-        .select('COALESCE(SUM(CAST(expense.amount AS numeric)), 0)', 'total')
-        .getRawOne<{ total: string }>();
+        .select('COALESCE(SUM(CAST(expense.amount AS numeric)), 0)', 'total');
+
+      if (query.categoryId) {
+        qb.andWhere('expense.categoryId = :categoryId', { categoryId: query.categoryId });
+      }
+
+      if (query.accountId) {
+        qb.andWhere('expense.accountId = :accountId', { accountId: query.accountId });
+      }
+
+      if (query.fromDate) {
+        qb.andWhere('expense.date >= :fromDate', { fromDate: query.fromDate });
+      }
+
+      if (query.toDate) {
+        qb.andWhere('expense.date <= :toDate', { toDate: query.toDate });
+      }
+
+      applySearch(qb, query.search, {
+        text: ['expense.description', 'expense.notes', 'category.name', 'account.name'],
+        numeric: ['expense.amount'],
+        date: ['expense.date'],
+      });
+
+      const result = await qb.getRawOne<{ total: string }>();
 
       return { total: Number(result?.total ?? 0) };
     } catch (error) {
