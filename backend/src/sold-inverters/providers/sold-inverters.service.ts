@@ -2,15 +2,17 @@ import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import { handleError } from '@/common/error-handlers/error.handler';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { SoldInverter } from '../entities/sold-inverter.entity';
 import { SoldInverterQueryDto } from '../dtos/sold-inverter-query.dto';
+import { SaleInvoiceItem } from '@/sale-invoices/entities/sale-invoice-item.entity';
 
 @Injectable()
 export class SoldInvertersService {
   constructor(
     @InjectRepository(SoldInverter)
     private readonly repo: Repository<SoldInverter>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findAll(query: SoldInverterQueryDto) {
@@ -40,16 +42,19 @@ export class SoldInvertersService {
       }
 
       if (query.search) {
-        qb.andWhere(
-          '(item.name ILIKE :search OR si.serialNumber ILIKE :search OR customer.name ILIKE :search)',
-          { search: `%${query.search}%` },
-        );
+        qb.leftJoin(SaleInvoiceItem, 'sii_search', 'sii_search.serialNumber = si.serialNumber')
+          .leftJoin('sii_search.invoice', 'inv_search')
+          .andWhere(
+            '(item.name ILIKE :search OR si.serialNumber ILIKE :search OR customer.name ILIKE :search OR inv_search.invoiceNumber ILIKE :search)',
+            { search: `%${query.search}%` },
+          );
       }
 
       const [data, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
+      const enriched = await this.attachSaleInvoices(data);
 
       return {
-        data,
+        data: enriched,
         meta: {
           itemsPerPage: limit,
           totalItems,
@@ -60,6 +65,33 @@ export class SoldInvertersService {
     } catch (error) {
       handleError(error);
     }
+  }
+
+  private async attachSaleInvoices(rows: SoldInverter[]) {
+    const serials = rows.map((r) => r.serialNumber).filter((s): s is string => !!s);
+    if (serials.length === 0) {
+      return rows.map((r) => ({ ...r, saleInvoice: null }));
+    }
+
+    const items = await this.dataSource
+      .getRepository(SaleInvoiceItem)
+      .createQueryBuilder('sii')
+      .innerJoin('sii.invoice', 'inv')
+      .select('sii.serialNumber', 'serial')
+      .addSelect('inv.id', 'id')
+      .addSelect('inv.invoiceNumber', 'invoiceNumber')
+      .where('sii.serialNumber IN (:...serials)', { serials })
+      .getRawMany<{ serial: string; id: number; invoiceNumber: string }>();
+
+    const map = new Map<string, { id: number; invoiceNumber: string }>();
+    for (const i of items) {
+      map.set(i.serial, { id: Number(i.id), invoiceNumber: i.invoiceNumber });
+    }
+
+    return rows.map((r) => ({
+      ...r,
+      saleInvoice: r.serialNumber ? map.get(r.serialNumber) ?? null : null,
+    }));
   }
 
   async getSummary(query: SoldInverterQueryDto) {

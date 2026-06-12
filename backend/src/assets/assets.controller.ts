@@ -39,11 +39,11 @@ export class AssetsController {
     return await this.assetsService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Get total asset amount' })
+  @ApiOperation({ summary: 'Get total asset amount (respects filters)' })
   @ApiResponse({ status: 200, description: 'Total asset amount' })
   @Get('total')
-  async getTotal() {
-    return await this.assetsService.getTotalAssetAmount();
+  async getTotal(@Query() query: AssetQueryDto) {
+    return await this.assetsService.getTotalAssetAmount(query);
   }
 
   @ApiOperation({ summary: 'Export assets as CSV' })

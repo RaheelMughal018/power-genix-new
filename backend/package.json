@@ -25,7 +25,8 @@
     "migration:create": "npm run typeorm -- migration:create ./src/migrations/$npm_config_name",
     "migration:revert": "npm run typeorm -- -d ./src/config/typeorm.config.ts migration:revert",
     "seed:admin": "NODE_ENV=development ts-node --project tsconfig.seed.json -r tsconfig-paths/register src/database/seeds/admin.seeder.ts",
-    "seed:user": "NODE_ENV=development ts-node --project tsconfig.seed.json -r tsconfig-paths/register src/database/seeds/user.seeder.ts"
+    "seed:user": "NODE_ENV=development ts-node --project tsconfig.seed.json -r tsconfig-paths/register src/database/seeds/user.seeder.ts",
+    "seed:delete-batch": "ts-node --project tsconfig.seed.json -r tsconfig-paths/register src/database/seeds/delete-batch.seeder.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",

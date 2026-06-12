@@ -18,6 +18,7 @@ export interface SoldInverter extends Record<string, unknown> {
   productionCost: number;
   saleCost: number;
   profit: number;
+  saleInvoice: { id: number; invoiceNumber: string } | null;
 }
 
 export interface SoldInverterSummary {
@@ -52,6 +53,7 @@ export function useSoldInverters() {
   const [filterCustomerId, setFilterCustomerId] = useState('');
   const [filterFromDate, setFilterFromDate] = useState('');
   const [filterToDate, setFilterToDate] = useState('');
+  const [search, setSearch] = useState('');
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -69,15 +71,15 @@ export function useSoldInverters() {
   const fetchInverters = useCallback(async () => {
     setLoading(true);
     try {
+      const filterParams = {
+        search: search || undefined,
+        customerId: filterCustomerId ? Number(filterCustomerId) : undefined,
+        fromDate: filterFromDate || undefined,
+        toDate: filterToDate || undefined,
+      };
       const [listRes, summaryRes] = await Promise.all([
-        soldInvertersApi.getAll({
-          page,
-          limit: LIMIT,
-          customerId: filterCustomerId ? Number(filterCustomerId) : undefined,
-          fromDate: filterFromDate || undefined,
-          toDate: filterToDate || undefined,
-        }),
-        soldInvertersApi.getSummary(),
+        soldInvertersApi.getAll({ page, limit: LIMIT, ...filterParams }),
+        soldInvertersApi.getSummary(filterParams),
       ]);
 
       const raw = listRes.data as { data?: ListResponse } & ListResponse;
@@ -102,7 +104,7 @@ export function useSoldInverters() {
     } finally {
       setLoading(false);
     }
-  }, [page, filterCustomerId, filterFromDate, filterToDate, addToast]);
+  }, [page, search, filterCustomerId, filterFromDate, filterToDate, addToast]);
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
   useEffect(() => { fetchInverters(); }, [fetchInverters]);
@@ -115,6 +117,11 @@ export function useSoldInverters() {
   const handleDateRangeChange = (range: { from: string; to: string } | null) => {
     setFilterFromDate(range?.from ?? '');
     setFilterToDate(range?.to ?? '');
+    setPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
     setPage(1);
   };
 
@@ -135,9 +142,11 @@ export function useSoldInverters() {
     summary,
     customers,
     filterCustomerId,
+    search,
     setPage,
     handleFilterChange,
     handleDateRangeChange,
+    handleSearchChange,
     handleExportCsv,
   };
 }

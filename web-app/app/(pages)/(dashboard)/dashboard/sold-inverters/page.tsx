@@ -1,9 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { DataTable, type Column } from '@/app/_shared/components/ui/dataTable/dataTable';
 import { SummaryCards } from '@/app/_shared/components/ui/summaryCards/summaryCards';
 import { FilterBar } from '@/app/_shared/components/ui/filterBar/filterBar';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
+import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { useSoldInverters, type SoldInverter } from './useSoldInverters';
 
 export default function SoldInvertersPage() {
@@ -16,9 +18,11 @@ export default function SoldInvertersPage() {
     summary,
     customers,
     filterCustomerId,
+    search,
     setPage,
     handleFilterChange,
     handleDateRangeChange,
+    handleSearchChange,
     handleExportCsv,
   } = useSoldInverters();
 
@@ -52,6 +56,18 @@ export default function SoldInvertersPage() {
       key: 'customer',
       label: 'Customer',
       render: (row) => row.customer?.name ?? '—',
+    },
+    {
+      key: 'saleInvoice',
+      label: 'Sale Invoice',
+      render: (row) => row.saleInvoice ? (
+        <Link
+          href={`${ROUTES.SALE_INVOICES}/${row.saleInvoice.id}`}
+          className="text-(--color-primary) hover:underline cursor-pointer font-medium"
+        >
+          {row.saleInvoice.invoiceNumber}
+        </Link>
+      ) : '—',
     },
     {
       key: 'productionCost',
@@ -98,6 +114,9 @@ export default function SoldInvertersPage() {
         totalPages={totalPages}
         totalItems={totalItems}
         onPageChange={setPage}
+        searchValue={search}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search by serial #, invoice #, customer..."
         onExportCsv={handleExportCsv}
         emptyTitle="No sold inverters"
         emptyDescription="Sold inverters will appear here once sale invoices are created."
