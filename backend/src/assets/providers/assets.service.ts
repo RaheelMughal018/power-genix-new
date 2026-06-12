@@ -219,13 +219,33 @@ export class AssetsService {
     }
   }
 
-  async getTotalAssetAmount() {
+  async getTotalAssetAmount(query: AssetQueryDto = {} as AssetQueryDto) {
     try {
-      const result = await this.repo
+      const qb = this.repo
         .createQueryBuilder('asset')
         .where('asset.deletedAt IS NULL')
-        .select('COALESCE(SUM(CAST(asset.amount AS numeric)), 0)', 'total')
-        .getRawOne<{ total: string }>();
+        .select('COALESCE(SUM(CAST(asset.amount AS numeric)), 0)', 'total');
+
+      if (query.accountId) {
+        qb.andWhere('asset.accountId = :accountId', { accountId: query.accountId });
+      }
+
+      if (query.fromDate) {
+        qb.andWhere('asset.purchaseDate >= :fromDate', { fromDate: query.fromDate });
+      }
+
+      if (query.toDate) {
+        qb.andWhere('asset.purchaseDate <= :toDate', { toDate: query.toDate });
+      }
+
+      if (query.search) {
+        qb.andWhere(
+          '(asset.name ILIKE :search OR asset.type ILIKE :search)',
+          { search: `%${query.search}%` },
+        );
+      }
+
+      const result = await qb.getRawOne<{ total: string }>();
 
       return { total: Number(result?.total ?? 0) };
     } catch (error) {

@@ -85,7 +85,12 @@ export default function AssetsPage() {
           fromDate: fromDate || undefined,
           toDate: toDate || undefined,
         }),
-        assetsApi.getTotal(),
+        assetsApi.getTotal({
+          search: search || undefined,
+          accountId,
+          fromDate: fromDate || undefined,
+          toDate: toDate || undefined,
+        }),
       ]);
 
       const raw = assetRes.data as { data?: AssetsResponse } & AssetsResponse;

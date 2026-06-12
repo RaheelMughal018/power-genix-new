@@ -227,7 +227,8 @@ export const stockAdjustmentsApi = {
 export const soldInvertersApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; customerId?: number; fromDate?: string; toDate?: string }) =>
     apiClient.get('/sold-inverters', params),
-  getSummary: () => apiClient.get('/sold-inverters/summary'),
+  getSummary: (params?: { search?: string; customerId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/sold-inverters/summary', params),
   exportCsv: () => apiClient.get('/sold-inverters/export/csv'),
 };
 
@@ -242,7 +243,8 @@ export const assetsApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; accountId?: number; fromDate?: string; toDate?: string }) =>
     apiClient.get('/assets', params),
   getById: (id: number) => apiClient.get(`/assets/${id}`),
-  getTotal: () => apiClient.get('/assets/total'),
+  getTotal: (params?: { search?: string; accountId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/assets/total', params),
   create: (data: { name: string; type: string; amount: number; purchaseDate: string; accountId: number; notes?: string }) =>
     apiClient.post('/assets', data),
   update: (id: number, data: { name?: string; type?: string; amount?: number; purchaseDate?: string; accountId?: number; notes?: string }) =>
