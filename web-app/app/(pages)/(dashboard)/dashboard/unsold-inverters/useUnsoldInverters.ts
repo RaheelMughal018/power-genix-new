@@ -1,70 +1,63 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { soldInvertersApi, customersApi } from '@/app/_shared/lib/api/client';
+import { unsoldInvertersApi } from '@/app/_shared/lib/api/client';
 import { useToast } from '@/app/_shared/components/ui/toast/toast';
 import { downloadCsv } from '@/app/_shared/lib/utils/download';
 
-export interface CustomerOption extends Record<string, unknown> {
+export interface UnsoldInverter extends Record<string, unknown> {
+  id: number;
+  serialNumber: string;
+  unitCost: number;
+  batch: { id: number; batchNumber: string; productionDate: string };
+  item: { id: number; name: string };
+}
+
+export interface UnsoldInverterSummary {
+  totalQuantity: number;
+  totalProductionCost: number;
+}
+
+export interface UnsoldItemOption extends Record<string, unknown> {
   id: number;
   name: string;
 }
 
-export interface SoldInverter extends Record<string, unknown> {
-  id: number;
-  serialNumber: string;
-  item: { id: number; name: string };
-  customer: { id: number; name: string };
-  productionCost: number;
-  saleCost: number;
-  profit: number;
-  saleInvoice: { id: number; invoiceNumber: string } | null;
-}
-
-export interface SoldInverterSummary {
-  totalProductionCost: number;
-  totalSaleCost: number;
-  totalProfit: number;
-  totalQuantity: number;
-}
-
 interface ListResponse {
-  data: SoldInverter[];
+  data: UnsoldInverter[];
   meta: { totalItems: number; page: number; limit: number; totalPages: number };
 }
 
 const LIMIT = 20;
 
-export function useSoldInverters() {
+export function useUnsoldInverters() {
   const { addToast } = useToast();
 
-  const [inverters, setInverters] = useState<SoldInverter[]>([]);
+  const [inverters, setInverters] = useState<UnsoldInverter[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  const [summary, setSummary] = useState<SoldInverterSummary>({
-    totalProductionCost: 0,
-    totalSaleCost: 0,
-    totalProfit: 0,
+  const [summary, setSummary] = useState<UnsoldInverterSummary>({
     totalQuantity: 0,
+    totalProductionCost: 0,
   });
 
-  const [customers, setCustomers] = useState<CustomerOption[]>([]);
-  const [filterCustomerId, setFilterCustomerId] = useState('');
+  const [itemOptions, setItemOptions] = useState<UnsoldItemOption[]>([]);
+  const [filterItemId, setFilterItemId] = useState('');
   const [filterFromDate, setFilterFromDate] = useState('');
   const [filterToDate, setFilterToDate] = useState('');
   const [search, setSearch] = useState('');
 
-  const fetchCustomers = useCallback(async () => {
+  const fetchItemOptions = useCallback(async () => {
     try {
-      const res = await customersApi.getAll({ limit: 500 });
-      const raw = res.data as { data?: { data: CustomerOption[] } } & { data: CustomerOption[] };
-      const list = raw.data && Array.isArray((raw.data as { data?: unknown }).data)
-        ? (raw.data as { data: CustomerOption[] }).data
-        : (raw.data as unknown as CustomerOption[]) ?? [];
-      setCustomers(Array.isArray(list) ? list : []);
+      const res = await unsoldInvertersApi.getItems();
+      const raw = res.data as { data?: UnsoldItemOption[] } & UnsoldItemOption[];
+      const list = Array.isArray((raw as { data?: unknown }).data)
+        ? (raw as { data: UnsoldItemOption[] }).data
+        : (raw as unknown as UnsoldItemOption[]) ?? [];
+      setItemOptions(Array.isArray(list) ? list : []);
     } catch {
       // non-critical
     }
@@ -75,13 +68,13 @@ export function useSoldInverters() {
     try {
       const filterParams = {
         search: search || undefined,
-        customerId: filterCustomerId ? Number(filterCustomerId) : undefined,
+        itemId: filterItemId ? Number(filterItemId) : undefined,
         fromDate: filterFromDate || undefined,
         toDate: filterToDate || undefined,
       };
       const [listRes, summaryRes] = await Promise.all([
-        soldInvertersApi.getAll({ page, limit: LIMIT, ...filterParams }),
-        soldInvertersApi.getSummary(filterParams),
+        unsoldInvertersApi.getAll({ page, limit: LIMIT, ...filterParams }),
+        unsoldInvertersApi.getSummary(filterParams),
       ]);
 
       const raw = listRes.data as { data?: ListResponse } & ListResponse;
@@ -92,28 +85,26 @@ export function useSoldInverters() {
       setTotalPages(resData.meta?.totalPages ?? 1);
       setTotalItems(resData.meta?.totalItems ?? 0);
 
-      const sumRaw = summaryRes.data as { data?: SoldInverterSummary } & SoldInverterSummary;
-      const sumData = sumRaw.data && 'totalSaleCost' in sumRaw.data
-        ? sumRaw.data as SoldInverterSummary
-        : sumRaw as unknown as SoldInverterSummary;
+      const sumRaw = summaryRes.data as { data?: UnsoldInverterSummary } & UnsoldInverterSummary;
+      const sumData = sumRaw.data && 'totalQuantity' in sumRaw.data
+        ? sumRaw.data as UnsoldInverterSummary
+        : sumRaw as unknown as UnsoldInverterSummary;
       setSummary({
-        totalProductionCost: sumData.totalProductionCost ?? 0,
-        totalSaleCost: sumData.totalSaleCost ?? 0,
-        totalProfit: sumData.totalProfit ?? 0,
         totalQuantity: sumData.totalQuantity ?? 0,
+        totalProductionCost: sumData.totalProductionCost ?? 0,
       });
     } catch {
-      addToast({ title: 'Error', description: 'Failed to load sold inverters', variant: 'error' });
+      addToast({ title: 'Error', description: 'Failed to load unsold inverters', variant: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [page, search, filterCustomerId, filterFromDate, filterToDate, addToast]);
+  }, [page, search, filterItemId, filterFromDate, filterToDate, addToast]);
 
-  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+  useEffect(() => { fetchItemOptions(); }, [fetchItemOptions]);
   useEffect(() => { fetchInverters(); }, [fetchInverters]);
 
   const handleFilterChange = (key: string, value: string) => {
-    if (key === 'customerId') setFilterCustomerId(value);
+    if (key === 'itemId') setFilterItemId(value);
     setPage(1);
   };
 
@@ -130,7 +121,12 @@ export function useSoldInverters() {
 
   const handleExportCsv = async () => {
     try {
-      await downloadCsv('/sold-inverters/export/csv', 'sold-inverters.csv');
+      const params: Record<string, string> = {};
+      if (search) params.search = search;
+      if (filterItemId) params.itemId = filterItemId;
+      if (filterFromDate) params.fromDate = filterFromDate;
+      if (filterToDate) params.toDate = filterToDate;
+      await downloadCsv('/unsold-inverters/export/csv', 'unsold-inverters.csv', params);
     } catch {
       addToast({ title: 'Error', description: 'Failed to export CSV', variant: 'error' });
     }
@@ -143,8 +139,8 @@ export function useSoldInverters() {
     totalPages,
     totalItems,
     summary,
-    customers,
-    filterCustomerId,
+    itemOptions,
+    filterItemId,
     search,
     setPage,
     handleFilterChange,

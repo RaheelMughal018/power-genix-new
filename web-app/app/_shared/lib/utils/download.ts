@@ -19,8 +19,9 @@ function triggerDownload(blob: Blob, filename: string) {
   window.URL.revokeObjectURL(url);
 }
 
-export async function downloadCsv(url: string, filename: string) {
-  const response = await fetch(getDownloadUrl(url), { headers: getAuthHeaders() });
+export async function downloadCsv(url: string, filename: string, params?: Record<string, string>) {
+  const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+  const response = await fetch(getDownloadUrl(url, queryString), { headers: getAuthHeaders() });
   if (!response.ok) throw new Error(`Download failed: ${response.status}`);
   triggerDownload(await response.blob(), filename);
 }

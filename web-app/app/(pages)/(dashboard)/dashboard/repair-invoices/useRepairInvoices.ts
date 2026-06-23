@@ -14,6 +14,7 @@ export interface RepairInvoice extends Record<string, unknown> {
   isCharged: boolean;
   laborCost?: number;
   totalAmount: number;
+  profit?: number;
   customer: { id: number; name: string };
 }
 

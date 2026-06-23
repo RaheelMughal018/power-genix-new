@@ -30,6 +30,7 @@ import { ProductionModule } from './production/production.module';
 import { PurchaseInvoicesModule } from './purchase-invoices/purchase-invoices.module';
 import { SaleInvoicesModule } from './sale-invoices/sale-invoices.module';
 import { SoldInvertersModule } from './sold-inverters/sold-inverters.module';
+import { UnsoldInvertersModule } from './unsold-inverters/unsold-inverters.module';
 import { RepairInvoicesModule } from './repair-invoices/repair-invoices.module';
 import { ExpenseCategoriesModule } from './expense-categories/expense-categories.module';
 import { ExpensesModule } from './expenses/expenses.module';
@@ -104,6 +105,7 @@ const ENV = process.env.NODE_ENV;
     PurchaseInvoicesModule,
     SaleInvoicesModule,
     SoldInvertersModule,
+    UnsoldInvertersModule,
     RepairInvoicesModule,
     ExpenseCategoriesModule,
     ExpensesModule,

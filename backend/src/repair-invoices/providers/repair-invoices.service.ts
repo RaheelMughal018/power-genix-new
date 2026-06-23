@@ -58,9 +58,10 @@ export class RepairInvoicesService {
       }
 
       const [data, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
+      const enriched = await this.attachProfit(data);
 
       return {
-        data,
+        data: enriched,
         meta: {
           itemsPerPage: limit,
           totalItems,
@@ -71,6 +72,31 @@ export class RepairInvoicesService {
     } catch (error) {
       handleError(error);
     }
+  }
+
+  private async attachProfit(rows: RepairInvoice[]): Promise<Array<RepairInvoice & { profit: number }>> {
+    const ids = rows.map((r) => r.id);
+    if (ids.length === 0) return rows.map((r) => ({ ...r, profit: 0 }));
+
+    const costRows = await this.dataSource
+      .getRepository(RepairInvoiceItem)
+      .createQueryBuilder('rii')
+      .leftJoin(Item, 'i', 'i.id = rii.itemId')
+      .select('rii.invoiceId', 'invoiceId')
+      .addSelect('COALESCE(SUM(CAST(rii.quantity AS numeric) * CAST(i.averagePrice AS numeric)), 0)', 'cost')
+      .where('rii.invoiceId IN (:...ids)', { ids })
+      .andWhere('rii.itemId IS NOT NULL')
+      .groupBy('rii.invoiceId')
+      .getRawMany<{ invoiceId: number; cost: string }>();
+
+    const costMap = new Map<number, number>();
+    for (const r of costRows) costMap.set(Number(r.invoiceId), Number(r.cost));
+
+    return rows.map((r) => {
+      const cost = costMap.get(r.id) ?? 0;
+      const profit = r.isCharged ? Number(r.totalAmount) - cost : 0;
+      return { ...r, profit };
+    });
   }
 
   async findOne(id: number) {

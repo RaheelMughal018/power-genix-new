@@ -9,6 +9,7 @@ export interface DashboardSummary {
   totalInStockAmount: number;
   totalSalePrice: number;
   totalRepairCost: number;
+  totalRepairProfit: number;
   totalSoldInvertersProfit: number;
   totalAmountToPay: number;
   totalAmountToReceive: number;

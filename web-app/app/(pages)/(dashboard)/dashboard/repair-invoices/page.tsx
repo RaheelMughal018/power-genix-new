@@ -40,6 +40,15 @@ export default function RepairInvoicesPage() {
     { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
     { key: 'totalAmount', label: 'Amount', render: (row) => formatPKR(row.totalAmount) },
     {
+      key: 'profit',
+      label: 'Profit',
+      render: (row) => (
+        <span className={Number(row.profit ?? 0) >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+          {formatPKR(row.profit ?? 0)}
+        </span>
+      ),
+    },
+    {
       key: 'isCharged', label: 'Type',
       render: (row) => (
         <StatusBadge status={row.isCharged ? 'charged' : 'foc'} />
@@ -60,7 +69,7 @@ export default function RepairInvoicesPage() {
     <tr>
       <td colSpan={5} className="px-4 py-3 text-sm font-semibold text-(--color-text-primary)">Total</td>
       <td className="px-4 py-3 text-sm font-bold text-(--color-primary-600)">{formatPKR(totalAmount)}</td>
-      <td colSpan={2} />
+      <td colSpan={3} />
     </tr>
   );
 

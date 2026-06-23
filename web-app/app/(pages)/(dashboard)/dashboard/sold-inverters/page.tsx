@@ -30,6 +30,7 @@ export default function SoldInvertersPage() {
     { label: 'Total Production Cost', value: formatPKR(summary.totalProductionCost) },
     { label: 'Total Sale Cost', value: formatPKR(summary.totalSaleCost) },
     { label: 'Total Profit', value: formatPKR(summary.totalProfit) },
+    { label: 'Total Quantity', value: String(summary.totalQuantity) },
   ];
 
   const customerFilterOptions = customers.map((c) => ({ label: c.name, value: String(c.id) }));
@@ -97,7 +98,7 @@ export default function SoldInvertersPage() {
         <p className="text-(--color-text-secondary)">View profitability of all sold inverter units</p>
       </div>
 
-      <SummaryCards cards={summaryCards} columns={3} />
+      <SummaryCards cards={summaryCards} columns={4} />
 
       <FilterBar
         filters={filterConfigs}
