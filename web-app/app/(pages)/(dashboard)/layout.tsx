@@ -175,6 +175,12 @@ export default function DashboardLayout({
               </Link>
             </li>
             <li>
+              <Link href={ROUTES.UNSOLD_INVERTERS} className={navLinkClass}>
+                <SoldIcon />
+                <span>Unsold Inverters</span>
+              </Link>
+            </li>
+            <li>
               <Link href={ROUTES.SUPPLIER_PAYMENTS} className={navLinkClass}>
                 <PaymentIcon />
                 <span>Supplier Payments</span>

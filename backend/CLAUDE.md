@@ -40,6 +40,7 @@ src/
 ├── expense-categories/  # Expense categories
 ├── accounts/            # Financial accounts + account transfers
 ├── sold-inverters/      # Serial-tracked sold inverter registry
+├── unsold-inverters/    # Produced units not yet sold (derived view, no schema)
 ├── assets/              # Business assets (equipment, vehicles, etc.)
 ├── stock-adjustments/   # Manual stock corrections
 ├── settings/            # App settings (company info, etc.)
@@ -138,6 +139,10 @@ Repair invoice line items accept an optional `unitPrice` (defaults to item's `av
 ### Production Refresh Prices
 
 `POST /production/:id/refresh-prices` (PENDING batches only) syncs every `production_unit_item.unitPrice` to the current `item.averagePrice`, recomputes each `unit.unitCost` and the batch `totalCost`. Used when raw-material avg prices change after a batch is created (e.g. stock adjustment added stock with a different price). Implemented in `RefreshPricesProvider`. The frontend disables the Complete action and surfaces this button when any stored `unitPrice` differs from the item's current `averagePrice`.
+
+### Sold vs Unsold Derivation
+
+A `ProductionUnit` is considered "sold" iff a non-soft-deleted `SoldInverter` row exists with a matching `serialNumber`. No status flag is stored on the unit. The `unsold-inverters` module derives the unsold list via `ProductionUnit LEFT JOIN sold_inverter ON serialNumber WHERE sold_inverter.id IS NULL AND production_batch.status = 'completed'`. Units automatically reappear in the unsold list when the parent sale invoice is deleted (which soft-deletes `SoldInverter`).
 
 ### Assets
 

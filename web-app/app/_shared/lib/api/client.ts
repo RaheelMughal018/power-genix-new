@@ -233,6 +233,16 @@ export const soldInvertersApi = {
   exportCsv: () => apiClient.get('/sold-inverters/export/csv'),
 };
 
+// Unsold Inverters API
+export const unsoldInvertersApi = {
+  getAll: (params: { page?: number; limit?: number; search?: string; itemId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/unsold-inverters', params),
+  getSummary: (params?: { search?: string; itemId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/unsold-inverters/summary', params),
+  getItems: () => apiClient.get('/unsold-inverters/items'),
+  exportCsv: () => apiClient.get('/unsold-inverters/export/csv'),
+};
+
 // Dashboard API
 export const dashboardApi = {
   getSummary: (params?: { from?: string; to?: string }) => apiClient.get('/dashboard', params),

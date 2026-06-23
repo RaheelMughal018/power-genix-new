@@ -27,7 +27,7 @@ export class SoldInvertersController {
     return await this.service.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Get summary totals (production cost, sale cost, profit)' })
+  @ApiOperation({ summary: 'Get aggregated production cost, sale cost, profit, and quantity (honors customerId / fromDate / toDate / search filters)' })
   @ApiResponse({ status: 200, description: 'Summary totals retrieved' })
   @Get('summary')
   async getSummary(@Query() query: SoldInverterQueryDto) {

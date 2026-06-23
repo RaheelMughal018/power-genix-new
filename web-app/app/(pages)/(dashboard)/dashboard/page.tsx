@@ -33,6 +33,11 @@ export default function DashboardPage() {
           href: ROUTES.REPAIR_INVOICES,
         },
         {
+          label: 'Total Repair Profit',
+          value: formatPKR(summary.totalRepairProfit),
+          href: ROUTES.REPAIR_INVOICES,
+        },
+        {
           label: 'Production Cost',
           value: formatPKR(summary.totalProductionCost),
           href: ROUTES.PRODUCTION,

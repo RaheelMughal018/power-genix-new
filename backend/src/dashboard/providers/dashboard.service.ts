@@ -56,6 +56,7 @@ export class DashboardService {
         totalInStockAmount,
         totalSalePrice,
         totalRepairCost,
+        totalRepairProfit,
         totalSoldInvertersProfit,
         totalAmountToPay,
         totalAmountToReceive,
@@ -68,6 +69,7 @@ export class DashboardService {
         this.getTotalInStockAmount(),
         this.getTotalSalePrice(fromDate, toDate),
         this.getTotalRepairCost(fromDate, toDate),
+        this.getTotalRepairProfit(fromDate, toDate),
         this.getTotalSoldInvertersProfit(fromDate, toDate),
         this.getTotalAmountToPay(),
         this.getTotalAmountToReceive(),
@@ -84,6 +86,7 @@ export class DashboardService {
         totalInStockAmount,
         totalSalePrice,
         totalRepairCost,
+        totalRepairProfit,
         totalSoldInvertersProfit,
         totalAmountToPay,
         totalAmountToReceive,
@@ -176,6 +179,33 @@ export class DashboardService {
       .createQueryBuilder('ri')
       .where('ri.deletedAt IS NULL AND ri.isCharged = true')
       .select('COALESCE(SUM(CAST(ri.totalAmount AS numeric)), 0)', 'total');
+
+    if (fromDate) qb.andWhere('ri.date >= :fromDate', { fromDate });
+    if (toDate) qb.andWhere('ri.date <= :toDate', { toDate });
+
+    const result = await qb.getRawOne<{ total: string }>();
+    return Number(result?.total ?? 0);
+  }
+
+  private async getTotalRepairProfit(fromDate?: string, toDate?: string): Promise<number> {
+    const partsCostSub = this.dataSource
+      .createQueryBuilder()
+      .select('rii."invoiceId"', 'invoiceId')
+      .addSelect('COALESCE(SUM(CAST(rii.quantity AS numeric) * CAST(i."averagePrice" AS numeric)), 0)', 'cost')
+      .from('repair_invoice_item', 'rii')
+      .leftJoin('item', 'i', 'i.id = rii."itemId"')
+      .where('rii."itemId" IS NOT NULL')
+      .groupBy('rii."invoiceId"');
+
+    const qb = this.repairInvoiceRepo
+      .createQueryBuilder('ri')
+      .leftJoin(`(${partsCostSub.getQuery()})`, 'parts', 'parts."invoiceId" = ri.id')
+      .where('ri.deletedAt IS NULL')
+      .andWhere('ri.isCharged = true')
+      .select(
+        'COALESCE(SUM(CAST(ri.totalAmount AS numeric) - COALESCE(CAST(parts.cost AS numeric), 0)), 0)',
+        'total',
+      );
 
     if (fromDate) qb.andWhere('ri.date >= :fromDate', { fromDate });
     if (toDate) qb.andWhere('ri.date <= :toDate', { toDate });

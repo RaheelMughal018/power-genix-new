@@ -35,6 +35,7 @@ Inventory, production, and sales management ERP for an inverter manufacturing bu
 | Assets | `assets/` | `assets/` | Business assets (equipment, vehicles, etc.) purchased from accounts |
 | Accounts | `accounts/` | `accounts/` | Financial accounts + transfers + detail (transactions history) |
 | Sold Inverters | `sold-inverters/` | `sold-inverters/` | Serial-tracked sold inverter registry |
+| Unsold Inverters | `unsold-inverters/` | `unsold-inverters/` | Produced units not yet sold (read-only registry, derived from production + sold join) |
 | Stock Adjustments | `stock-adjustments/` | `stock-adjustments/` | Manual stock corrections |
 | Settings | `settings/` | `settings/` | App settings (company info, etc.) |
 
