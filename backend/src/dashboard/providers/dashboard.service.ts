@@ -195,6 +195,7 @@ export class DashboardService {
       .from('repair_invoice_item', 'rii')
       .leftJoin('item', 'i', 'i.id = rii."itemId"')
       .where('rii."itemId" IS NOT NULL')
+      .andWhere('rii."isReal" = true')
       .groupBy('rii."invoiceId"');
 
     const qb = this.repairInvoiceRepo

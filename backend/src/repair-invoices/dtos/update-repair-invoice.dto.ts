@@ -36,6 +36,12 @@ export class UpdateRepairInvoiceDto {
   @Min(0)
   laborCost?: number;
 
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  discount?: number;
+
   @ApiProperty()
   @IsBoolean()
   isCharged: boolean;

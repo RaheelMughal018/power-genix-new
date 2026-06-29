@@ -45,6 +45,10 @@ export class StockAdjustmentsService {
         qb.andWhere('adj.itemId = :itemId', { itemId: query.itemId });
       }
 
+      if (query.supplierId) {
+        qb.andWhere('adj.supplierId = :supplierId', { supplierId: query.supplierId });
+      }
+
       if (query.type) {
         qb.andWhere('adj.type = :type', { type: query.type });
       }

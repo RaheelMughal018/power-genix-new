@@ -56,6 +56,12 @@ export class CreateRepairInvoiceDto {
   @Min(0)
   laborCost?: number;
 
+  @ApiPropertyOptional({ description: 'Discount amount — only applies to Charged invoices' })
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  discount?: number;
+
   @ApiProperty({ description: 'true = Charged (customer pays); false = FOC (free of cost)' })
   @IsBoolean()
   isCharged: boolean;

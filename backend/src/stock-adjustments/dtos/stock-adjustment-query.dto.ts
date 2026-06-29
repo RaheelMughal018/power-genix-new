@@ -13,6 +13,13 @@ export class StockAdjustmentQueryDto extends PaginationQueryDto {
   @IsPositive()
   itemId?: number;
 
+  @ApiPropertyOptional({ description: 'Filter by supplier ID' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  supplierId?: number;
+
   @ApiPropertyOptional({ enum: AdjustmentType })
   @IsOptional()
   @IsEnum(AdjustmentType)

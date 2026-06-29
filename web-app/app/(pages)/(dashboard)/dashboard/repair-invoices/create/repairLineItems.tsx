@@ -27,6 +27,8 @@ interface RepairLineItemsProps {
   isCharged: boolean;
   laborCost: number;
   onLaborCostChange: (v: number) => void;
+  discount: number;
+  onDiscountChange: (v: number) => void;
 }
 
 const emptyRow = (): RepairLineItem => ({
@@ -38,12 +40,14 @@ const emptyRow = (): RepairLineItem => ({
 export { emptyRow };
 
 export function RepairLineItems({
-  lineItems, onLineItemsChange, itemOptions, isCharged, laborCost, onLaborCostChange,
+  lineItems, onLineItemsChange, itemOptions, isCharged, laborCost, onLaborCostChange, discount, onDiscountChange,
 }: RepairLineItemsProps) {
   const updateRow = (id: string, patch: Partial<RepairLineItem>) => {
     onLineItemsChange(lineItems.map((li) => {
       if (li.id !== id) return li;
       const updated = { ...li, ...patch };
+      updated.quantity = Number(updated.quantity) || 0;
+      updated.unitPrice = Number(updated.unitPrice) || 0;
       updated.totalPrice = updated.quantity * updated.unitPrice;
       return updated;
     }));
@@ -59,8 +63,9 @@ export function RepairLineItems({
     onLineItemsChange(lineItems.filter((li) => li.id !== id));
   };
 
-  const partsTotal = lineItems.reduce((s, li) => s + li.totalPrice, 0);
-  const grandTotal = partsTotal + (isCharged ? (laborCost || 0) : 0);
+  const partsTotal = lineItems.reduce((s, li) => s + (Number(li.totalPrice) || 0), 0);
+  const discountValue = isCharged ? (Number(discount) || 0) : 0;
+  const grandTotal = Math.max(0, partsTotal + (isCharged ? (Number(laborCost) || 0) : 0) - discountValue);
 
   const cellCls = 'w-full px-2 py-1.5 rounded border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm';
 
@@ -139,6 +144,16 @@ export function RepairLineItems({
               <input
                 type="number" min={0} value={laborCost}
                 onChange={(e) => onLaborCostChange(Number(e.target.value))}
+                className="w-28 px-2 py-1 rounded border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm text-right"
+              />
+            </div>
+          )}
+          {isCharged && (
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-(--color-text-secondary)">Discount</span>
+              <input
+                type="number" min={0} value={discount}
+                onChange={(e) => onDiscountChange(Number(e.target.value))}
                 className="w-28 px-2 py-1 rounded border border-(--color-border) bg-(--color-bg-primary) text-(--color-text-primary) text-sm text-right"
               />
             </div>

@@ -45,8 +45,8 @@ export class RepairInvoicesController {
   @ApiOperation({ summary: 'Get total amount of all charged repair invoices' })
   @ApiResponse({ status: 200, description: 'Total repair amount' })
   @Get('total')
-  async getTotal() {
-    const total = await this.repairInvoicesService.getTotalRepairAmount();
+  async getTotal(@Query() query: RepairInvoiceQueryDto) {
+    const total = await this.repairInvoicesService.getTotalRepairAmount(query);
     return { total };
   }
 
@@ -100,6 +100,7 @@ export class RepairInvoicesController {
         })),
         totalAmount: Number(invoice.totalAmount),
         laborCost: Number(invoice.laborCost),
+        discount: Number(invoice.discount ?? 0),
         extraFields,
       },
       activeUser.id,

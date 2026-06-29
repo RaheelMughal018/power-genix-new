@@ -86,6 +86,7 @@ export class RepairInvoicesService {
       .addSelect('COALESCE(SUM(CAST(rii.quantity AS numeric) * CAST(i.averagePrice AS numeric)), 0)', 'cost')
       .where('rii.invoiceId IN (:...ids)', { ids })
       .andWhere('rii.itemId IS NOT NULL')
+      .andWhere('rii.isReal = true')
       .groupBy('rii.invoiceId')
       .getRawMany<{ invoiceId: number; cost: string }>();
 
@@ -125,6 +126,7 @@ export class RepairInvoicesService {
       const invoiceNumber = await generateInvoiceNumber('RI', this.invoiceRepository);
 
       const laborCost = dto.isCharged ? (dto.laborCost ?? 0) : 0;
+      const discount = dto.isCharged ? (dto.discount ?? 0) : 0;
 
       let partsTotal = 0;
 
@@ -135,6 +137,7 @@ export class RepairInvoicesService {
         description: dto.description,
         date: dto.date,
         laborCost,
+        discount,
         isCharged: dto.isCharged,
         totalAmount: 0,
         createdById: activeUser.id,
@@ -172,7 +175,7 @@ export class RepairInvoicesService {
         await queryRunner.manager.save(RepairInvoiceItem, lineItem);
       }
 
-      const totalAmount = partsTotal + laborCost;
+      const totalAmount = Math.max(0, partsTotal + laborCost - discount);
 
       await queryRunner.manager.update(RepairInvoice, { id: savedInvoice.id }, { totalAmount });
 
@@ -220,6 +223,7 @@ export class RepairInvoicesService {
 
       // Apply new line items
       const laborCost = dto.isCharged ? (dto.laborCost ?? 0) : 0;
+      const discount = dto.isCharged ? (dto.discount ?? 0) : 0;
       let partsTotal = 0;
 
       for (const lineDto of dto.items) {
@@ -252,7 +256,7 @@ export class RepairInvoicesService {
         await queryRunner.manager.save(RepairInvoiceItem, lineItem);
       }
 
-      const totalAmount = partsTotal + laborCost;
+      const totalAmount = Math.max(0, partsTotal + laborCost - discount);
 
       await queryRunner.manager.update(RepairInvoice, { id }, {
         customerId: dto.customerId,
@@ -260,6 +264,7 @@ export class RepairInvoicesService {
         description: dto.description,
         date: dto.date,
         laborCost,
+        discount,
         isCharged: dto.isCharged,
         totalAmount,
       });
@@ -279,12 +284,33 @@ export class RepairInvoicesService {
     }
   }
 
-  async getTotalRepairAmount(): Promise<number> {
+  async getTotalRepairAmount(query: RepairInvoiceQueryDto = {}): Promise<number> {
     try {
-      const result = await this.invoiceRepository
+      const qb = this.invoiceRepository
         .createQueryBuilder('ri')
-        .where('ri.isCharged = true')
-        .andWhere('ri.deletedAt IS NULL')
+        .leftJoin('ri.customer', 'customer')
+        .where('ri.deletedAt IS NULL');
+
+      applySearch(qb, query.search, {
+        text: ['ri.invoiceNumber', 'customer.name', 'ri.description'],
+        numeric: ['ri.totalAmount'],
+        date: ['ri.date'],
+      });
+
+      if (query.customerId) {
+        qb.andWhere('ri.customerId = :customerId', { customerId: query.customerId });
+      }
+      if (query.fromDate) {
+        qb.andWhere('ri.date >= :fromDate', { fromDate: query.fromDate });
+      }
+      if (query.toDate) {
+        qb.andWhere('ri.date <= :toDate', { toDate: query.toDate });
+      }
+      if (query.isCharged !== undefined) {
+        qb.andWhere('ri.isCharged = :isCharged', { isCharged: query.isCharged });
+      }
+
+      const result = await qb
         .select('COALESCE(SUM(CAST(ri.totalAmount AS numeric)), 0)', 'total')
         .getRawOne<{ total: string }>();
 
@@ -320,13 +346,14 @@ export class RepairInvoicesService {
       });
 
       return toCsvBuffer(
-        ['Invoice #', 'Date', 'Customer', 'Type', 'Labor Cost', 'Total Amount', 'Description'],
+        ['Invoice #', 'Date', 'Customer', 'Type', 'Labor Cost', 'Discount', 'Total Amount', 'Description'],
         invoices.map((inv) => ({
           'Invoice #': inv.invoiceNumber,
           'Date': inv.date,
           'Customer': inv.customer?.name ?? '',
           'Type': inv.isCharged ? 'Charged' : 'FOC',
           'Labor Cost': Number(inv.laborCost ?? 0),
+          'Discount': Number(inv.discount ?? 0),
           'Total Amount': Number(inv.totalAmount),
           'Description': inv.description ?? '',
         })),

@@ -40,6 +40,9 @@ export class RepairInvoice {
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   laborCost: number;
 
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  discount: number;
+
   @Column({ type: 'boolean' })
   isCharged: boolean;
 
