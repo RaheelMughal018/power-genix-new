@@ -124,7 +124,8 @@ export const purchaseInvoicesApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; supplierId?: number; fromDate?: string; toDate?: string }) =>
     apiClient.get('/purchase-invoices', params),
   getById: (id: number) => apiClient.get(`/purchase-invoices/${id}`),
-  getTotal: () => apiClient.get('/purchase-invoices/total'),
+  getTotal: (params?: { search?: string; supplierId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/purchase-invoices/total', params),
   create: (data: { supplierId: number; date: string; discount?: number; notes?: string; items: Array<{ itemId: number; quantity: number; unitPrice: number }> }) =>
     apiClient.post('/purchase-invoices', data),
   update: (id: number, data: { supplierId: number; date: string; discount?: number; notes?: string; items: Array<{ itemId: number; quantity: number; unitPrice: number }> }) =>
@@ -137,7 +138,8 @@ export const saleInvoicesApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; customerId?: number; fromDate?: string; toDate?: string }) =>
     apiClient.get('/sale-invoices', params),
   getById: (id: number) => apiClient.get(`/sale-invoices/${id}`),
-  getTotal: () => apiClient.get('/sale-invoices/total'),
+  getTotal: (params?: { search?: string; customerId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/sale-invoices/total', params),
   getAvailableSerials: (itemId: number) => apiClient.get(`/sale-invoices/available-serials/${itemId}`),
   create: (data: { customerId: number; date: string; discount?: number; notes?: string; items: Array<{ itemId: number; quantity: number; unitPrice: number; serialNumber?: string }> }) =>
     apiClient.post('/sale-invoices', data),

@@ -311,11 +311,30 @@ export class SaleInvoicesService {
     }
   }
 
-  async getTotalSaleAmount(): Promise<number> {
+  async getTotalSaleAmount(query: SaleInvoiceQueryDto = {}): Promise<number> {
     try {
-      const result = await this.invoiceRepository
+      const qb = this.invoiceRepository
         .createQueryBuilder('si')
-        .where('si.deletedAt IS NULL')
+        .leftJoin('si.customer', 'customer')
+        .where('si.deletedAt IS NULL');
+
+      applySearch(qb, query.search, {
+        text: ['si.invoiceNumber', 'customer.name', 'si.notes'],
+        numeric: ['si.totalAmount'],
+        date: ['si.date'],
+      });
+
+      if (query.customerId) {
+        qb.andWhere('si.customerId = :customerId', { customerId: query.customerId });
+      }
+      if (query.fromDate) {
+        qb.andWhere('si.date >= :fromDate', { fromDate: query.fromDate });
+      }
+      if (query.toDate) {
+        qb.andWhere('si.date <= :toDate', { toDate: query.toDate });
+      }
+
+      const result = await qb
         .select('COALESCE(SUM(CAST(si.totalAmount AS numeric)), 0)', 'total')
         .getRawOne<{ total: string }>();
 

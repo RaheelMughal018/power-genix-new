@@ -249,11 +249,30 @@ export class PurchaseInvoicesService {
     }
   }
 
-  async getTotalPurchaseAmount(): Promise<number> {
+  async getTotalPurchaseAmount(query: PurchaseInvoiceQueryDto = {}): Promise<number> {
     try {
-      const result = await this.invoiceRepository
+      const qb = this.invoiceRepository
         .createQueryBuilder('pi')
-        .where('pi.deletedAt IS NULL')
+        .leftJoin('pi.supplier', 'supplier')
+        .where('pi.deletedAt IS NULL');
+
+      applySearch(qb, query.search, {
+        text: ['pi.invoiceNumber', 'supplier.name', 'pi.notes'],
+        numeric: ['pi.totalAmount'],
+        date: ['pi.date'],
+      });
+
+      if (query.supplierId) {
+        qb.andWhere('pi.supplierId = :supplierId', { supplierId: query.supplierId });
+      }
+      if (query.fromDate) {
+        qb.andWhere('pi.date >= :fromDate', { fromDate: query.fromDate });
+      }
+      if (query.toDate) {
+        qb.andWhere('pi.date <= :toDate', { toDate: query.toDate });
+      }
+
+      const result = await qb
         .select('COALESCE(SUM(CAST(pi.totalAmount AS numeric)), 0)', 'total')
         .getRawOne<{ total: string }>();
 

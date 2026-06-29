@@ -45,8 +45,8 @@ export class PurchaseInvoicesController {
   @ApiOperation({ summary: 'Get total purchase amount across all invoices' })
   @ApiResponse({ status: 200, description: 'Total purchase amount' })
   @Get('total')
-  async getTotal() {
-    const total = await this.purchaseInvoicesService.getTotalPurchaseAmount();
+  async getTotal(@Query() query: PurchaseInvoiceQueryDto) {
+    const total = await this.purchaseInvoicesService.getTotalPurchaseAmount(query);
     return { total };
   }
 
