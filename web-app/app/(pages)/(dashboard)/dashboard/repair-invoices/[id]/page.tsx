@@ -26,6 +26,7 @@ interface InvoiceDetail {
   serialNumber?: string;
   isCharged: boolean;
   laborCost?: number;
+  discount?: number;
   totalAmount: number;
   customer: { id: number; name: string };
   items: InvoiceItem[];
@@ -61,6 +62,7 @@ export default function ViewRepairInvoicePage() {
 
   const partsTotal = (invoice.items || []).reduce((sum, li) => sum + Number(li.quantity) * Number(li.unitPrice), 0);
   const laborCost = invoice.isCharged ? Number(invoice.laborCost || 0) : 0;
+  const discount = invoice.isCharged ? Number(invoice.discount || 0) : 0;
 
   return (
     <div className="space-y-8">
@@ -179,10 +181,16 @@ export default function ViewRepairInvoicePage() {
               <span className="text-(--color-text-primary)">{formatPKR(laborCost)}</span>
             </div>
           )}
+          {invoice.isCharged && discount > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-(--color-text-secondary)">Discount</span>
+              <span className="text-(--color-text-primary)">− {formatPKR(discount)}</span>
+            </div>
+          )}
           <div className="border-t border-(--color-border) pt-3 mt-2 flex justify-between items-baseline">
             <span className="font-semibold text-(--color-text-primary)">Grand Total</span>
             <span className="text-xl font-bold text-(--color-primary-600)">
-              {formatPKR(invoice.totalAmount ?? (partsTotal + laborCost))}
+              {formatPKR(invoice.totalAmount ?? Math.max(0, partsTotal + laborCost - discount))}
             </span>
           </div>
         </div>

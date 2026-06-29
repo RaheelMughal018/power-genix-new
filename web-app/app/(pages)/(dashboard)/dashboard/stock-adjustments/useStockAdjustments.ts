@@ -100,6 +100,13 @@ export function useStockAdjustments() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [search, setSearch] = useState('');
+  const [filterSupplierId, setFilterSupplierId] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterReason, setFilterReason] = useState('');
+  const [filterFromDate, setFilterFromDate] = useState('');
+  const [filterToDate, setFilterToDate] = useState('');
+
   const fetchItems = useCallback(async () => {
     try {
       const res = await itemsApi.getAll({ limit: 500 });
@@ -129,7 +136,16 @@ export function useStockAdjustments() {
   const fetchAdjustments = useCallback(async () => {
     setHistoryLoading(true);
     try {
-      const res = await stockAdjustmentsApi.getAll({ page, limit: LIMIT });
+      const res = await stockAdjustmentsApi.getAll({
+        page,
+        limit: LIMIT,
+        search: search || undefined,
+        supplierId: filterSupplierId ? Number(filterSupplierId) : undefined,
+        type: filterType || undefined,
+        reason: filterReason || undefined,
+        fromDate: filterFromDate || undefined,
+        toDate: filterToDate || undefined,
+      });
       const raw = res.data as { data?: AdjustmentsListResponse } & AdjustmentsListResponse;
       const resData = raw.data && Array.isArray((raw.data as { data?: unknown }).data)
         ? raw.data as AdjustmentsListResponse
@@ -142,7 +158,7 @@ export function useStockAdjustments() {
     } finally {
       setHistoryLoading(false);
     }
-  }, [page, addToast]);
+  }, [page, search, filterSupplierId, filterType, filterReason, filterFromDate, filterToDate, addToast]);
 
   const fetchItemInfo = useCallback(async (itemId: number) => {
     setItemInfoLoading(true);
@@ -257,6 +273,24 @@ export function useStockAdjustments() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleFilterChange = (key: string, value: string) => {
+    if (key === 'supplierId') setFilterSupplierId(value);
+    else if (key === 'type') setFilterType(value);
+    else if (key === 'reason') setFilterReason(value);
+    setPage(1);
+  };
+
+  const handleDateRangeChange = (range: { from: string; to: string } | null) => {
+    setFilterFromDate(range?.from ?? '');
+    setFilterToDate(range?.to ?? '');
+    setPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
   const handleExportCsv = async () => {
     try {
       await downloadCsv('/stock-adjustments/export/csv', 'stock-adjustments.csv');
@@ -295,6 +329,10 @@ export function useStockAdjustments() {
     totalItems,
     deleteId,
     isDeleting,
+    search,
+    filterSupplierId,
+    filterType,
+    filterReason,
     setPage,
     setDeleteId,
     handleItemChange,
@@ -304,6 +342,9 @@ export function useStockAdjustments() {
     handleEditClick,
     handleDeleteConfirm,
     handleExportCsv,
+    handleFilterChange,
+    handleDateRangeChange,
+    handleSearchChange,
     resetForm,
   };
 }

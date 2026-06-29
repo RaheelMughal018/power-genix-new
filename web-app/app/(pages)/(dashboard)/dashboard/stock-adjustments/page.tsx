@@ -3,8 +3,22 @@
 import { DataTable, type Column } from '@/app/_shared/components/ui/dataTable/dataTable';
 import { ConfirmDialog } from '@/app/_shared/components/ui/confirmDialog/confirmDialog';
 import { Button } from '@/app/_shared/components/ui/button/button';
+import { FilterBar } from '@/app/_shared/components/ui/filterBar/filterBar';
+import { DateRangeSelector } from '@/app/_shared/components/ui/dateSelector/dateRangeSelector';
 import { AdjustmentForm } from './adjustmentForm';
 import { useStockAdjustments, type StockAdjustment } from './useStockAdjustments';
+
+const TYPE_OPTIONS = [
+  { label: 'Add', value: 'add' },
+  { label: 'Deduct', value: 'deduct' },
+];
+
+const REASON_OPTIONS = [
+  { label: 'Opening Stock', value: 'opening_stock' },
+  { label: 'Miscount', value: 'miscount' },
+  { label: 'Return to Supplier', value: 'return_to_supplier' },
+  { label: 'Damaged / Lost', value: 'damaged_lost' },
+];
 
 const REASON_LABELS: Record<string, string> = {
   opening_stock: 'Opening Stock',
@@ -29,6 +43,10 @@ export default function StockAdjustmentsPage() {
     totalItems,
     deleteId,
     isDeleting,
+    search,
+    filterSupplierId,
+    filterType,
+    filterReason,
     setPage,
     setDeleteId,
     handleExportCsv,
@@ -38,8 +56,32 @@ export default function StockAdjustmentsPage() {
     handleSubmit,
     handleEditClick,
     handleDeleteConfirm,
+    handleFilterChange,
+    handleDateRangeChange,
+    handleSearchChange,
     resetForm,
   } = useStockAdjustments();
+
+  const filterConfigs = [
+    {
+      key: 'supplierId',
+      label: 'Supplier',
+      options: suppliers.map((s) => ({ label: s.name, value: String(s.id) })),
+      value: filterSupplierId,
+    },
+    {
+      key: 'type',
+      label: 'Type',
+      options: TYPE_OPTIONS,
+      value: filterType,
+    },
+    {
+      key: 'reason',
+      label: 'Reason',
+      options: REASON_OPTIONS,
+      value: filterReason,
+    },
+  ];
 
   const columns: Column<StockAdjustment>[] = [
     { key: 'id', label: 'ID', width: '60px' },
@@ -151,6 +193,15 @@ export default function StockAdjustmentsPage() {
 
       <div>
         <h2 className="text-lg font-semibold text-(--color-text-primary) mb-3">Adjustment History</h2>
+
+        <div className="flex flex-wrap items-end gap-4 mb-4">
+          <FilterBar
+            filters={filterConfigs}
+            onFilterChange={handleFilterChange}
+          />
+          <DateRangeSelector onChange={handleDateRangeChange} />
+        </div>
+
         <DataTable<StockAdjustment>
           columns={columns}
           data={adjustments}
@@ -159,6 +210,9 @@ export default function StockAdjustmentsPage() {
           totalPages={totalPages}
           totalItems={totalItems}
           onPageChange={setPage}
+          searchValue={search}
+          onSearchChange={handleSearchChange}
+          searchPlaceholder="Search by item name, price, supplier..."
           onExportCsv={handleExportCsv}
           emptyTitle="No adjustments yet"
           emptyDescription="Save your first adjustment above."

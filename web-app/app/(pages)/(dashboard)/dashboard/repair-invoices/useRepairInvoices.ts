@@ -13,6 +13,7 @@ export interface RepairInvoice extends Record<string, unknown> {
   serialNumber?: string;
   isCharged: boolean;
   laborCost?: number;
+  discount?: number;
   totalAmount: number;
   profit?: number;
   customer: { id: number; name: string };
@@ -58,14 +59,20 @@ export function useRepairInvoices() {
 
   const fetchTotal = useCallback(async () => {
     try {
-      const res = await repairInvoicesApi.getTotal();
+      const res = await repairInvoicesApi.getTotal({
+        search: search || undefined,
+        customerId: customerId || undefined,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
+        isCharged,
+      });
       const raw = res.data as { data?: { total: number } } & { total?: number };
       const total = (raw.data as { total?: number })?.total ?? raw.total ?? 0;
       setTotalAmount(total);
     } catch {
       // non-critical
     }
-  }, []);
+  }, [search, customerId, fromDate, toDate, isCharged]);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -92,8 +99,9 @@ export function useRepairInvoices() {
     }
   }, [page, search, customerId, fromDate, toDate, isCharged]);
 
-  useEffect(() => { fetchCustomers(); fetchTotal(); }, []);
+  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
   useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
+  useEffect(() => { fetchTotal(); }, [fetchTotal]);
 
   const handleExportCsv = async () => {
     try {

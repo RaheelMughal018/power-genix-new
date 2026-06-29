@@ -55,14 +55,19 @@ export function useSaleInvoices() {
 
   const fetchTotal = useCallback(async () => {
     try {
-      const res = await saleInvoicesApi.getTotal();
+      const res = await saleInvoicesApi.getTotal({
+        search: search || undefined,
+        customerId: customerId || undefined,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
+      });
       const raw = res.data as { data?: { total: number } } & { total?: number };
       const total = (raw.data as { total?: number })?.total ?? raw.total ?? 0;
       setTotalAmount(total);
     } catch {
       // non-critical
     }
-  }, []);
+  }, [search, customerId, fromDate, toDate]);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -88,8 +93,9 @@ export function useSaleInvoices() {
     }
   }, [page, search, customerId, fromDate, toDate]);
 
-  useEffect(() => { fetchCustomers(); fetchTotal(); }, []);
+  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
   useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
+  useEffect(() => { fetchTotal(); }, [fetchTotal]);
 
   const handleExportCsv = async () => {
     try {

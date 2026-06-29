@@ -20,6 +20,7 @@ interface InvoiceDetail {
   serialNumber?: string;
   isCharged: boolean;
   laborCost?: number;
+  discount?: number;
   customer: { id: number; name: string };
   items: Array<{
     id: number;
@@ -53,6 +54,7 @@ export default function EditRepairInvoicePage() {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [laborCost, setLaborCost] = useState(0);
+  const [discount, setDiscount] = useState(0);
   const [lineItems, setLineItems] = useState<RepairLineItem[]>([emptyRow()]);
 
   const unwrapList = <T,>(res: { data: unknown }): T[] => {
@@ -85,14 +87,15 @@ export default function EditRepairInvoicePage() {
         setDescription(inv.description || '');
         setSerialNumber(inv.serialNumber || '');
         setIsCharged(inv.isCharged ?? true);
-        setLaborCost(inv.laborCost || 0);
+        setLaborCost(Number(inv.laborCost) || 0);
+        setDiscount(Number(inv.discount) || 0);
         setLineItems((inv.items || []).map((li) => ({
           id: String(li.id),
           itemId: li.item ? String(li.item.id) : '',
           itemName: li.item?.name ?? '',
-          quantity: li.quantity,
+          quantity: Number(li.quantity),
           unitPrice: Number(li.unitPrice),
-          totalPrice: Number(li.unitPrice) * li.quantity,
+          totalPrice: Number(li.unitPrice) * Number(li.quantity),
           isReal: li.isReal ?? true,
         })));
       } catch {
@@ -139,6 +142,7 @@ export default function EditRepairInvoicePage() {
         customerId, description, date, isCharged,
         serialNumber: serialNumber.trim() || undefined,
         laborCost: isCharged && laborCost > 0 ? laborCost : undefined,
+        discount: isCharged && discount > 0 ? discount : undefined,
         items: validItems.map((l) => ({ itemId: Number(l.itemId), quantity: l.quantity, unitPrice: l.unitPrice, isReal: l.isReal })),
       });
       addToast({ title: 'Success', description: 'Repair invoice updated', variant: 'success' });
@@ -197,6 +201,7 @@ export default function EditRepairInvoicePage() {
           lineItems={lineItems} onLineItemsChange={setLineItems}
           itemOptions={itemOptions} isCharged={isCharged}
           laborCost={laborCost} onLaborCostChange={setLaborCost}
+          discount={discount} onDiscountChange={setDiscount}
         />
       </div>
 

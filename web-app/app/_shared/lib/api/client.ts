@@ -124,7 +124,8 @@ export const purchaseInvoicesApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; supplierId?: number; fromDate?: string; toDate?: string }) =>
     apiClient.get('/purchase-invoices', params),
   getById: (id: number) => apiClient.get(`/purchase-invoices/${id}`),
-  getTotal: () => apiClient.get('/purchase-invoices/total'),
+  getTotal: (params?: { search?: string; supplierId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/purchase-invoices/total', params),
   create: (data: { supplierId: number; date: string; discount?: number; notes?: string; items: Array<{ itemId: number; quantity: number; unitPrice: number }> }) =>
     apiClient.post('/purchase-invoices', data),
   update: (id: number, data: { supplierId: number; date: string; discount?: number; notes?: string; items: Array<{ itemId: number; quantity: number; unitPrice: number }> }) =>
@@ -137,7 +138,8 @@ export const saleInvoicesApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; customerId?: number; fromDate?: string; toDate?: string }) =>
     apiClient.get('/sale-invoices', params),
   getById: (id: number) => apiClient.get(`/sale-invoices/${id}`),
-  getTotal: () => apiClient.get('/sale-invoices/total'),
+  getTotal: (params?: { search?: string; customerId?: number; fromDate?: string; toDate?: string }) =>
+    apiClient.get('/sale-invoices/total', params),
   getAvailableSerials: (itemId: number) => apiClient.get(`/sale-invoices/available-serials/${itemId}`),
   create: (data: { customerId: number; date: string; discount?: number; notes?: string; items: Array<{ itemId: number; quantity: number; unitPrice: number; serialNumber?: string }> }) =>
     apiClient.post('/sale-invoices', data),
@@ -151,10 +153,11 @@ export const repairInvoicesApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; customerId?: number; fromDate?: string; toDate?: string; isCharged?: boolean }) =>
     apiClient.get('/repair-invoices', params),
   getById: (id: number) => apiClient.get(`/repair-invoices/${id}`),
-  getTotal: () => apiClient.get('/repair-invoices/total'),
-  create: (data: { customerId: number; serialNumber?: string; description: string; date: string; laborCost?: number; isCharged: boolean; items: Array<{ itemId?: number; quantity: number; isReal: boolean; customItemName?: string; customUnitPrice?: number }> }) =>
+  getTotal: (params?: { search?: string; customerId?: number; fromDate?: string; toDate?: string; isCharged?: boolean }) =>
+    apiClient.get('/repair-invoices/total', params),
+  create: (data: { customerId: number; serialNumber?: string; description: string; date: string; laborCost?: number; discount?: number; isCharged: boolean; items: Array<{ itemId?: number; quantity: number; isReal: boolean; customItemName?: string; customUnitPrice?: number }> }) =>
     apiClient.post('/repair-invoices', data),
-  update: (id: number, data: { customerId: number; serialNumber?: string; description: string; date: string; laborCost?: number; isCharged: boolean; items: Array<{ itemId?: number; quantity: number; isReal: boolean; customItemName?: string; customUnitPrice?: number }> }) =>
+  update: (id: number, data: { customerId: number; serialNumber?: string; description: string; date: string; laborCost?: number; discount?: number; isCharged: boolean; items: Array<{ itemId?: number; quantity: number; isReal: boolean; customItemName?: string; customUnitPrice?: number }> }) =>
     apiClient.patch(`/repair-invoices/${id}`, data),
   exportCsv: () => apiClient.get('/repair-invoices/export/csv'),
 };
@@ -211,7 +214,7 @@ export const customerPaymentsApi = {
 
 // Stock Adjustments API
 export const stockAdjustmentsApi = {
-  getAll: (params: { page?: number; limit?: number; search?: string; itemId?: number }) =>
+  getAll: (params: { page?: number; limit?: number; search?: string; itemId?: number; supplierId?: number; type?: string; reason?: string; fromDate?: string; toDate?: string }) =>
     apiClient.get('/stock-adjustments', params),
   getById: (id: number) => apiClient.get(`/stock-adjustments/${id}`),
   getItemInfo: (itemId: number) => apiClient.get(`/stock-adjustments/item/${itemId}/info`),
