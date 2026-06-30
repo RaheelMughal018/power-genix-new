@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/app/_shared/components/ui/button/button';
-import { DateRangePicker } from '@/app/_shared/components/ui/dateRangePicker/dateRangePicker';
 import { Input } from '@/app/_shared/components/ui/input/input';
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
 import { Pagination } from '@/app/_shared/components/ui/pagination/pagination';
@@ -62,7 +61,7 @@ interface RawResponse {
   };
 }
 
-interface Props { supplierId: number; }
+interface Props { supplierId: number; dateRange: { from: string; to: string } | null; }
 
 const unwrapStatement = (res: { data: unknown }): StatementResponse => {
   const outer = res.data as { data: RawResponse };
@@ -88,15 +87,13 @@ const unwrapStatement = (res: { data: unknown }): StatementResponse => {
   return { rows, footer };
 };
 
-export function StatementTab({ supplierId }: Props) {
+export function StatementTab({ supplierId, dateRange }: Props) {
   const router = useRouter();
   const [statement, setStatement] = useState<StatementResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 400);
-  const [pickerKey, setPickerKey] = useState(0);
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -118,17 +115,7 @@ export function StatementTab({ supplierId }: Props) {
 
   useEffect(() => { setPage(1); }, [debouncedSearch, dateRange]);
 
-  const handleDateChange = (range: { from: string; to: string } | null) => {
-    setDateRange(range);
-  };
-
-  const handleClearFilters = () => {
-    setSearch('');
-    setDateRange(null);
-    setPickerKey((k) => k + 1);
-  };
-
-  const hasFilter = Boolean(search) || Boolean(dateRange);
+  const hasFilter = Boolean(search);
 
   const handleDownloadPdf = async () => {
     setDownloading(true);
@@ -176,14 +163,13 @@ export function StatementTab({ supplierId }: Props) {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <DateRangePicker key={pickerKey} onChange={handleDateChange} />
           {hasFilter && (
             <button
               type="button"
-              onClick={handleClearFilters}
+              onClick={() => setSearch('')}
               className="text-sm text-(--color-primary) hover:underline cursor-pointer px-2 py-1"
             >
-              Clear all
+              Clear search
             </button>
           )}
         </div>

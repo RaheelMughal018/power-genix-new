@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { SummaryCards } from '@/app/_shared/components/ui/summaryCards/summaryCards';
+import { DateRangePicker } from '@/app/_shared/components/ui/dateRangePicker/dateRangePicker';
 import { Tabs } from '@/app/_shared/components/ui/tabs/tabs';
 import { Button } from '@/app/_shared/components/ui/button/button';
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
@@ -36,12 +37,13 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
 
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const response = await customersApi.getDetail(Number(id));
+        const response = await customersApi.getDetail(Number(id), dateRange ?? undefined);
         const detail = (response.data as { data: CustomerDetail }).data;
         setCustomer(detail);
       } catch {
@@ -51,9 +53,9 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       }
     };
     fetchDetail();
-  }, [id, addToast]);
+  }, [id, dateRange, addToast]);
 
-  if (loading) {
+  if (loading && !customer) {
     return (
       <div className="flex items-center justify-center h-64">
         <span className="text-(--color-text-secondary)">Loading...</span>
@@ -95,6 +97,10 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
+      <div className="flex justify-end">
+        <DateRangePicker onChange={setDateRange} />
+      </div>
+
       <SummaryCards cards={summaryCards} columns={3} />
 
       <Tabs defaultTab="sales">
@@ -106,19 +112,19 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         </Tabs.List>
 
         <Tabs.Panel id="sales">
-          <SaleHistoryTab customerId={customer.id} />
+          <SaleHistoryTab customerId={customer.id} dateRange={dateRange} />
         </Tabs.Panel>
 
         <Tabs.Panel id="repairs">
-          <RepairHistoryTab customerId={customer.id} />
+          <RepairHistoryTab customerId={customer.id} dateRange={dateRange} />
         </Tabs.Panel>
 
         <Tabs.Panel id="payments">
-          <CustomerPaymentHistoryTab customerId={customer.id} />
+          <CustomerPaymentHistoryTab customerId={customer.id} dateRange={dateRange} />
         </Tabs.Panel>
 
         <Tabs.Panel id="statement">
-          <CustomerStatementTab customerId={customer.id} />
+          <CustomerStatementTab customerId={customer.id} dateRange={dateRange} />
         </Tabs.Panel>
       </Tabs>
     </div>

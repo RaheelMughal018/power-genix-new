@@ -19,9 +19,9 @@ interface CustomerPayment extends Record<string, unknown> {
   account?: { id: number; name: string };
 }
 
-interface Props { customerId: number; }
+interface Props { customerId: number; dateRange: { from: string; to: string } | null; }
 
-export function CustomerPaymentHistoryTab({ customerId }: Props) {
+export function CustomerPaymentHistoryTab({ customerId, dateRange }: Props) {
   const router = useRouter();
   const [payments, setPayments] = useState<CustomerPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,6 @@ export function CustomerPaymentHistoryTab({ customerId }: Props) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [search, setSearch] = useState('');
-  const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -86,8 +85,6 @@ export function CustomerPaymentHistoryTab({ customerId }: Props) {
       <HistoryFilters
         search={search}
         onSearchChange={setSearch}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
         searchPlaceholder="Search by invoice # or notes..."
       />
       {showEmpty ? (

@@ -8,8 +8,8 @@ import { useDebounce } from '@/app/_shared/lib/hooks/useDebounce';
 interface HistoryFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
-  dateRange: { from: string; to: string } | null;
-  onDateRangeChange: (range: { from: string; to: string } | null) => void;
+  dateRange?: { from: string; to: string } | null;
+  onDateRangeChange?: (range: { from: string; to: string } | null) => void;
   searchPlaceholder?: string;
 }
 
@@ -44,7 +44,7 @@ export const HistoryFilters = ({
     setLocalSearch('');
     lastEmitted.current = '';
     onSearchChange('');
-    onDateRangeChange(null);
+    onDateRangeChange?.(null);
     setPickerKey((k) => k + 1);
   };
 
@@ -58,7 +58,7 @@ export const HistoryFilters = ({
           onChange={(e) => setLocalSearch(e.target.value)}
         />
       </div>
-      <DateRangePicker key={pickerKey} onChange={onDateRangeChange} />
+      {onDateRangeChange && <DateRangePicker key={pickerKey} onChange={onDateRangeChange} />}
       {hasFilter && (
         <button
           type="button"

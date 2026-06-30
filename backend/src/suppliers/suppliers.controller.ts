@@ -125,9 +125,15 @@ export class SuppliersController {
   @ApiResponse({ status: 200, description: 'Supplier detail with balance breakdown' })
   @ApiResponse({ status: 404, description: 'Supplier not found' })
   @ApiParam({ name: 'id', type: Number })
+  @ApiQuery({ name: 'from', required: false, type: String })
+  @ApiQuery({ name: 'to', required: false, type: String })
   @Get(':id/detail')
-  async getDetail(@Param('id', ParseIntPipe) id: number) {
-    return await this.suppliersService.getDetail(id);
+  async getDetail(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return await this.suppliersService.getDetail(id, from, to);
   }
 
   @ApiOperation({ summary: 'Create a new supplier' })

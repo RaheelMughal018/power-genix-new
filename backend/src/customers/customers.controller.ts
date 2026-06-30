@@ -123,9 +123,15 @@ export class CustomersController {
   @ApiResponse({ status: 200, description: 'Customer detail with balance breakdown' })
   @ApiResponse({ status: 404, description: 'Customer not found' })
   @ApiParam({ name: 'id', type: Number })
+  @ApiQuery({ name: 'from', required: false, type: String })
+  @ApiQuery({ name: 'to', required: false, type: String })
   @Get(':id/detail')
-  async getDetail(@Param('id', ParseIntPipe) id: number) {
-    return await this.customersService.getDetail(id);
+  async getDetail(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return await this.customersService.getDetail(id, from, to);
   }
 
   @ApiOperation({ summary: 'Create a new customer' })

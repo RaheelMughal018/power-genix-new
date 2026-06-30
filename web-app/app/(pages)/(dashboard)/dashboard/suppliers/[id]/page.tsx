@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { SummaryCards } from '@/app/_shared/components/ui/summaryCards/summaryCards';
+import { DateRangePicker } from '@/app/_shared/components/ui/dateRangePicker/dateRangePicker';
 import { Tabs } from '@/app/_shared/components/ui/tabs/tabs';
 import { Button } from '@/app/_shared/components/ui/button/button';
 import { NoContentCard } from '@/app/_shared/components/ui/noContentCard/noContentCard';
@@ -34,12 +35,13 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
   const [supplier, setSupplier] = useState<SupplierDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const response = await suppliersApi.getDetail(Number(id));
+        const response = await suppliersApi.getDetail(Number(id), dateRange ?? undefined);
         const detail = (response.data as { data: SupplierDetail }).data;
         setSupplier(detail);
       } catch {
@@ -49,9 +51,9 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
       }
     };
     fetchDetail();
-  }, [id, addToast]);
+  }, [id, dateRange, addToast]);
 
-  if (loading) {
+  if (loading && !supplier) {
     return (
       <div className="flex items-center justify-center h-64">
         <span className="text-(--color-text-secondary)">Loading...</span>
@@ -92,6 +94,10 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
+      <div className="flex justify-end">
+        <DateRangePicker onChange={setDateRange} />
+      </div>
+
       <SummaryCards cards={summaryCards} columns={3} />
 
       <Tabs defaultTab="purchases">
@@ -102,15 +108,15 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         </Tabs.List>
 
         <Tabs.Panel id="purchases">
-          <PurchaseHistoryTab supplierId={supplier.id} />
+          <PurchaseHistoryTab supplierId={supplier.id} dateRange={dateRange} />
         </Tabs.Panel>
 
         <Tabs.Panel id="payments">
-          <PaymentHistoryTab supplierId={supplier.id} />
+          <PaymentHistoryTab supplierId={supplier.id} dateRange={dateRange} />
         </Tabs.Panel>
 
         <Tabs.Panel id="statement">
-          <StatementTab supplierId={supplier.id} />
+          <StatementTab supplierId={supplier.id} dateRange={dateRange} />
         </Tabs.Panel>
       </Tabs>
     </div>
