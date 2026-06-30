@@ -105,7 +105,7 @@ export class SuppliersService {
     }
   }
 
-  async getDetail(id: number) {
+  async getDetail(id: number, from?: string, to?: string) {
     try {
       const supplier = await this.suppliersRepository.findOne({
         where: { id },
@@ -118,25 +118,34 @@ export class SuppliersService {
 
       const openingBalance = Number(supplier.openingBalance);
 
-      const purchaseResult = await this.purchaseInvoiceRepository
+      const purchaseQb = this.purchaseInvoiceRepository
         .createQueryBuilder('pi')
-        .where('pi.supplierId = :supplierId AND pi.deletedAt IS NULL', { supplierId: id })
+        .where('pi.supplierId = :supplierId AND pi.deletedAt IS NULL', { supplierId: id });
+      if (from) purchaseQb.andWhere('pi.date >= :from', { from });
+      if (to) purchaseQb.andWhere('pi.date <= :to', { to });
+      const purchaseResult = await purchaseQb
         .select('COALESCE(SUM(CAST(pi.totalAmount AS numeric)), 0)', 'total')
         .getRawOne<{ total: string }>();
 
       const totalPurchaseAmount = Number(purchaseResult?.total ?? 0);
 
-      const paymentResult = await this.supplierPaymentRepository
+      const paymentQb = this.supplierPaymentRepository
         .createQueryBuilder('sp')
-        .where('sp.supplierId = :supplierId AND sp.deletedAt IS NULL', { supplierId: id })
+        .where('sp.supplierId = :supplierId AND sp.deletedAt IS NULL', { supplierId: id });
+      if (from) paymentQb.andWhere('sp.date >= :from', { from });
+      if (to) paymentQb.andWhere('sp.date <= :to', { to });
+      const paymentResult = await paymentQb
         .select('COALESCE(SUM(CAST(sp.amount AS numeric)), 0)', 'total')
         .getRawOne<{ total: string }>();
 
       const totalPaidAmount = Number(paymentResult?.total ?? 0);
 
-      const returnResult = await this.stockAdjustmentRepository
+      const returnQb = this.stockAdjustmentRepository
         .createQueryBuilder('sa')
-        .where('sa.supplierId = :supplierId AND sa.reason = :reason AND sa.deletedAt IS NULL', { supplierId: id, reason: 'return_to_supplier' })
+        .where('sa.supplierId = :supplierId AND sa.reason = :reason AND sa.deletedAt IS NULL', { supplierId: id, reason: 'return_to_supplier' });
+      if (from) returnQb.andWhere('sa.date >= :from', { from });
+      if (to) returnQb.andWhere('sa.date <= :to', { to });
+      const returnResult = await returnQb
         .select('COALESCE(SUM(CAST(sa.deductionAmount AS numeric)), 0)', 'total')
         .getRawOne<{ total: string }>();
 

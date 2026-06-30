@@ -20,9 +20,9 @@ interface RepairInvoice extends Record<string, unknown> {
   isCharged: boolean;
 }
 
-interface Props { customerId: number; }
+interface Props { customerId: number; dateRange: { from: string; to: string } | null; }
 
-export function RepairHistoryTab({ customerId }: Props) {
+export function RepairHistoryTab({ customerId, dateRange }: Props) {
   const router = useRouter();
   const [invoices, setInvoices] = useState<RepairInvoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,6 @@ export function RepairHistoryTab({ customerId }: Props) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [search, setSearch] = useState('');
-  const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -87,8 +86,6 @@ export function RepairHistoryTab({ customerId }: Props) {
       <HistoryFilters
         search={search}
         onSearchChange={setSearch}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
         searchPlaceholder="Search by invoice # or description..."
       />
       {showEmpty ? (

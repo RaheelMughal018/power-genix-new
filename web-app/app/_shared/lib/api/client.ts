@@ -59,7 +59,8 @@ export const suppliersApi = {
   getAll: (params: { page?: number; limit?: number; search?: string }) =>
     apiClient.get('/suppliers', params),
   getById: (id: number) => apiClient.get(`/suppliers/${id}`),
-  getDetail: (id: number) => apiClient.get(`/suppliers/${id}/detail`),
+  getDetail: (id: number, params?: { from?: string; to?: string }) =>
+    apiClient.get(`/suppliers/${id}/detail`, params),
   create: (data: { name: string; phone: string; email?: string; address?: string; openingBalance?: number }) =>
     apiClient.post('/suppliers', data),
   update: (id: number, data: { name?: string; phone?: string; email?: string; address?: string }) =>
@@ -75,7 +76,8 @@ export const customersApi = {
   getAll: (params: { page?: number; limit?: number; search?: string }) =>
     apiClient.get('/customers', params),
   getById: (id: number) => apiClient.get(`/customers/${id}`),
-  getDetail: (id: number) => apiClient.get(`/customers/${id}/detail`),
+  getDetail: (id: number, params?: { from?: string; to?: string }) =>
+    apiClient.get(`/customers/${id}/detail`, params),
   create: (data: { name: string; phone: string; email?: string; address?: string; openingBalance?: number }) =>
     apiClient.post('/customers', data),
   update: (id: number, data: { name?: string; phone?: string; email?: string; address?: string }) =>

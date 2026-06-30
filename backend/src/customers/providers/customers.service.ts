@@ -109,7 +109,7 @@ export class CustomersService {
     }
   }
 
-  async getDetail(id: number) {
+  async getDetail(id: number, from?: string, to?: string) {
     try {
       const customer = await this.customersRepository.findOne({
         where: { id },
@@ -122,13 +122,16 @@ export class CustomersService {
 
       const openingBalance = Number(customer.openingBalance);
 
-      const totalSaleAmount = await this.saleInvoicesService.getTotalSaleAmountForCustomer(id);
+      const totalSaleAmount = await this.saleInvoicesService.getTotalSaleAmount({ customerId: id, fromDate: from, toDate: to });
 
-      const totalRepairAmount = await this.repairInvoicesService.getTotalRepairAmountForCustomer(id);
+      const totalRepairAmount = await this.repairInvoicesService.getTotalRepairAmount({ customerId: id, fromDate: from, toDate: to, isCharged: true });
 
-      const paymentResult = await this.customerPaymentRepository
+      const paymentQb = this.customerPaymentRepository
         .createQueryBuilder('cp')
-        .where('cp.customerId = :customerId AND cp.deletedAt IS NULL', { customerId: id })
+        .where('cp.customerId = :customerId AND cp.deletedAt IS NULL', { customerId: id });
+      if (from) paymentQb.andWhere('cp.date >= :from', { from });
+      if (to) paymentQb.andWhere('cp.date <= :to', { to });
+      const paymentResult = await paymentQb
         .select('COALESCE(SUM(CAST(cp.amount AS numeric)), 0)', 'total')
         .getRawOne<{ total: string }>();
 
