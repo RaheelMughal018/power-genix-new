@@ -96,12 +96,15 @@ export class SoldInvertersService {
       const records = await qb.getMany();
 
       return toCsvBuffer(
-        ['Serial Number', 'Item', 'Customer', 'Sale Date'],
+        ['Serial Number', 'Item', 'Customer', 'Sale Date', 'Production Cost', 'Sale Cost', 'Profit'],
         records.map((r) => ({
           'Serial Number': r.serialNumber,
           'Item': r.item?.name ?? '',
           'Customer': r.customer?.name ?? '',
           'Sale Date': r.saleDate,
+          'Production Cost': r.productionCost,
+          'Sale Cost': r.saleCost,
+          'Profit': r.profit,
         })),
       );
     } catch (error) {
