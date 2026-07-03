@@ -85,6 +85,19 @@ export class RepairInvoicesController {
     if (invoice.description) extraFields['Description'] = invoice.description;
     extraFields['Type'] = invoice.isCharged ? 'Charged' : 'Free of Charge';
 
+    const items = invoice.items.map((li) => ({
+      name: li.item?.name ?? li.customItemName ?? '',
+      quantity: Number(li.quantity),
+      unitPrice: Number(li.unitPrice),
+      totalPrice: Number(li.quantity) * Number(li.unitPrice),
+    }));
+
+    // Customer PDF shows the full amount (parts + labor) with no discount applied.
+    // The internal after-discount total lives on the web view, not here.
+    const partsTotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
+    const laborCost = Number(invoice.laborCost);
+    const customerGrandTotal = partsTotal + laborCost;
+
     const buffer = await this.pdfService.generateInvoicePdf(
       {
         title: 'Repair Invoice',
@@ -92,15 +105,9 @@ export class RepairInvoicesController {
         date: invoice.date,
         partyName: invoice.customer?.name ?? '',
         partyLabel: 'Customer',
-        items: invoice.items.map((li) => ({
-          name: li.item?.name ?? li.customItemName ?? '',
-          quantity: Number(li.quantity),
-          unitPrice: Number(li.unitPrice),
-          totalPrice: Number(li.quantity) * Number(li.unitPrice),
-        })),
-        totalAmount: Number(invoice.totalAmount),
-        laborCost: Number(invoice.laborCost),
-        discount: Number(invoice.discount ?? 0),
+        items,
+        totalAmount: customerGrandTotal,
+        laborCost,
         extraFields,
       },
       activeUser.id,
