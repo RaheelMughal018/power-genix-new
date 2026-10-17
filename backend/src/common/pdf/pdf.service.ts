@@ -507,41 +507,60 @@ export class PdfService {
   private drawStatementTable(doc: PDFKit.PDFDocument, data: StatementPdfData) {
     const pageWidth = 495;
     const colCount = data.columns.length;
-    const colW = Math.floor(pageWidth / colCount);
+    // A free-text "Description" column gets a wider slot and its rows grow to fit wrapped text
+    const descIdx = data.columns.indexOf('Description');
+    const baseW = Math.floor(pageWidth / colCount);
+    const descW = descIdx >= 0 ? baseW * 2 : 0;
+    const otherW = descIdx >= 0 ? Math.floor((pageWidth - descW) / (colCount - 1)) : baseW;
+    const widths = data.columns.map((_, i) => (i === descIdx ? descW : otherW));
+    const xs = widths.map((_, i) => 50 + widths.slice(0, i).reduce((a, b) => a + b, 0));
+    const alignOf = (i: number) => (i === 0 || i === descIdx ? 'left' : 'right');
+    const padX = (i: number) => (alignOf(i) === 'left' ? 4 : 0);
+    const gap = descIdx >= 0 ? 8 : 0;
+    const cellW = (i: number) => widths[i] - padX(i) - gap;
     const tableTop = doc.y;
-    const rowHeight = 20;
 
-    doc.rect(50, tableTop, pageWidth, rowHeight).fill(ACCENT_LIGHT);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(ACCENT);
+    doc.fontSize(8).font('Helvetica-Bold');
+    const headerHeight = Math.max(
+      20,
+      ...data.columns.map((col, i) => doc.heightOfString(col, { width: cellW(i) }) + 10),
+    );
+    doc.rect(50, tableTop, pageWidth, headerHeight).fill(ACCENT_LIGHT);
+    doc.fillColor(ACCENT);
     data.columns.forEach((col, i) => {
-      const align = i === 0 ? 'left' : 'right';
-      doc.text(col, 50 + i * colW + (i === 0 ? 4 : 0), tableTop + 5, { width: colW, align });
+      doc.text(col, xs[i] + padX(i), tableTop + 5, { width: cellW(i), align: alignOf(i) });
     });
 
-    let rowY = tableTop + rowHeight;
+    let rowY = tableTop + headerHeight;
 
     data.rows.forEach((row, idx) => {
-      if (rowY > 720) {
+      doc.fontSize(8).font('Helvetica');
+      const cells = data.columns.map((col) => {
+        const val = row[col];
+        return typeof val === 'number' ? this.fmt(val) : this.fmtDate(String(val ?? ''));
+      });
+      const rowHeight = Math.max(
+        18,
+        ...cells.map((text, i) => doc.heightOfString(text, { width: cellW(i) }) + 8),
+      );
+
+      if (rowY + rowHeight > 740) {
         doc.addPage();
         rowY = 50;
       }
 
       if (idx % 2 === 1) {
-        doc.rect(50, rowY, pageWidth, 18).fill(ROW_STRIPE);
+        doc.rect(50, rowY, pageWidth, rowHeight).fill(ROW_STRIPE);
       }
 
       doc.moveTo(50, rowY).lineTo(545, rowY).strokeColor(LINE_COLOR).lineWidth(0.5).stroke();
-      doc.fontSize(8).font('Helvetica').fillColor(COL_DARK);
+      doc.fillColor(COL_DARK);
 
-      data.columns.forEach((col, i) => {
-        const val = row[col];
-        const isNum = typeof val === 'number';
-        const align = i === 0 ? 'left' : 'right';
-        const display = isNum ? this.fmt(val as number) : this.fmtDate(String(val ?? ''));
-        doc.text(display, 50 + i * colW + (i === 0 ? 4 : 0), rowY + 4, { width: colW, align });
+      cells.forEach((text, i) => {
+        doc.text(text, xs[i] + padX(i), rowY + 4, { width: cellW(i), align: alignOf(i) });
       });
 
-      rowY += 18;
+      rowY += rowHeight;
     });
 
     doc.moveTo(50, rowY).lineTo(545, rowY).strokeColor(ACCENT).lineWidth(1).stroke();

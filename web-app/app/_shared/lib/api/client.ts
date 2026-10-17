@@ -44,7 +44,8 @@ export const itemsApi = {
   getAll: (params: { page?: number; limit?: number; search?: string; type?: string; stockStatus?: string; categoryId?: number }) =>
     apiClient.get('/items', params),
   getById: (id: number) => apiClient.get(`/items/${id}`),
-  getSummary: () => apiClient.get('/items/summary'),
+  getSummary: (params?: { search?: string; type?: string; stockStatus?: string; categoryId?: number }) =>
+    apiClient.get('/items/summary', params),
   getLowStock: () => apiClient.get('/items/low-stock'),
   create: (data: { name: string; categoryId: number; type: string; unit: string }) =>
     apiClient.post('/items', data),

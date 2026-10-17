@@ -1,0 +1,218 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]
+  - alert [ref=e11]: Power Genix - Inventory Management System
+  - generic [ref=e50]:
+    - complementary [ref=e51]:
+      - generic [ref=e52]:
+        - link "Power Genix Inventory System" [ref=e53] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e57]:
+            - generic [ref=e58]: Power Genix
+            - generic [ref=e59]: Inventory System
+        - button "Switch to dark mode" [ref=e60] [cursor=pointer]
+      - navigation [ref=e63]:
+        - list [ref=e64]:
+          - listitem [ref=e65]:
+            - link "Dashboard" [ref=e66] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=e73]:
+            - link "Accounts" [ref=e74] [cursor=pointer]:
+              - /url: /dashboard/accounts
+          - listitem [ref=e78]:
+            - link "Suppliers" [ref=e79] [cursor=pointer]:
+              - /url: /dashboard/suppliers
+          - listitem [ref=e86]:
+            - link "Customers" [ref=e87] [cursor=pointer]:
+              - /url: /dashboard/customers
+          - listitem [ref=e94]:
+            - link "Items & Inventory" [ref=e95] [cursor=pointer]:
+              - /url: /dashboard/items
+          - listitem [ref=e99]:
+            - link "Categories" [ref=e100] [cursor=pointer]:
+              - /url: /dashboard/categories
+          - listitem [ref=e103]:
+            - link "Recipes" [ref=e104] [cursor=pointer]:
+              - /url: /dashboard/recipes
+          - listitem [ref=e109]:
+            - link "Production" [ref=e110] [cursor=pointer]:
+              - /url: /dashboard/production
+          - listitem [ref=e115]:
+            - link "Purchase Invoices" [ref=e116] [cursor=pointer]:
+              - /url: /dashboard/purchase-invoices
+          - listitem [ref=e121]:
+            - link "Sale Invoices" [ref=e122] [cursor=pointer]:
+              - /url: /dashboard/sale-invoices
+          - listitem [ref=e128]:
+            - link "Repair Invoices" [ref=e129] [cursor=pointer]:
+              - /url: /dashboard/repair-invoices
+          - listitem [ref=e133]:
+            - link "Sold Inverters" [ref=e134] [cursor=pointer]:
+              - /url: /dashboard/sold-inverters
+          - listitem [ref=e138]:
+            - link "Unsold Inverters" [ref=e139] [cursor=pointer]:
+              - /url: /dashboard/unsold-inverters
+          - listitem [ref=e143]:
+            - link "Supplier Payments" [ref=e144] [cursor=pointer]:
+              - /url: /dashboard/supplier-payments
+          - listitem [ref=e148]:
+            - link "Customer Payments" [ref=e149] [cursor=pointer]:
+              - /url: /dashboard/customer-payments
+          - listitem [ref=e153]:
+            - link "Stock Adjustments" [ref=e154] [cursor=pointer]:
+              - /url: /dashboard/stock-adjustments
+          - listitem [ref=e157]:
+            - link "Expense Categories" [ref=e158] [cursor=pointer]:
+              - /url: /dashboard/expense-categories
+          - listitem [ref=e161]:
+            - link "Expenses" [ref=e162] [cursor=pointer]:
+              - /url: /dashboard/expenses
+          - listitem [ref=e166]:
+            - link "Assets" [ref=e167] [cursor=pointer]:
+              - /url: /dashboard/assets
+          - listitem [ref=e172]:
+            - link "Settings" [ref=e173] [cursor=pointer]:
+              - /url: /dashboard/settings
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - generic [ref=e180]: P
+          - generic [ref=e181]:
+            - paragraph [ref=e182]: Power
+            - paragraph [ref=e183]: admin@powergenix.com
+        - button "Sign out" [ref=e184] [cursor=pointer]
+    - main [ref=e186]:
+      - generic [ref=e187]:
+        - generic [ref=e188]:
+          - generic [ref=e189]:
+            - heading "Dashboard" [level=1] [ref=e190]
+            - paragraph [ref=e191]: Business overview and analytics
+          - generic [ref=e193]:
+            - button "Today" [ref=e194] [cursor=pointer]
+            - button "This Week" [ref=e195] [cursor=pointer]
+            - button "This Month" [ref=e196] [cursor=pointer]
+            - button "This Year" [ref=e197] [cursor=pointer]
+            - button "Custom" [ref=e198] [cursor=pointer]
+        - generic [ref=e199]:
+          - link "Total Purchases Rs. 8,26,000.00" [ref=e200] [cursor=pointer]:
+            - /url: /dashboard/purchase-invoices
+            - generic [ref=e201]: Total Purchases
+            - generic [ref=e203]: Rs. 8,26,000.00
+          - link "Total Sales Rs. 3,09,500.00" [ref=e204] [cursor=pointer]:
+            - /url: /dashboard/sale-invoices
+            - generic [ref=e205]: Total Sales
+            - generic [ref=e207]: Rs. 3,09,500.00
+          - link "Total Expenses Rs. 2,33,000.00" [ref=e208] [cursor=pointer]:
+            - /url: /dashboard/expenses
+            - generic [ref=e209]: Total Expenses
+            - generic [ref=e211]: Rs. 2,33,000.00
+          - link "Total Repair Revenue Rs. 9,600.00" [ref=e212] [cursor=pointer]:
+            - /url: /dashboard/repair-invoices
+            - generic [ref=e213]: Total Repair Revenue
+            - generic [ref=e215]: Rs. 9,600.00
+          - link "Total Repair Profit Rs. 6,608.33" [ref=e216] [cursor=pointer]:
+            - /url: /dashboard/repair-invoices
+            - generic [ref=e217]: Total Repair Profit
+            - generic [ref=e219]: Rs. 6,608.33
+          - link "Production Cost Rs. 3,27,600.08" [ref=e220] [cursor=pointer]:
+            - /url: /dashboard/production
+            - generic [ref=e221]: Production Cost
+            - generic [ref=e223]: Rs. 3,27,600.08
+          - link "Stock Value Rs. 7,28,411.92" [ref=e224] [cursor=pointer]:
+            - /url: /dashboard/items
+            - generic [ref=e225]: Stock Value
+            - generic [ref=e227]: Rs. 7,28,411.92
+          - link "Sold Inverters Profit Rs. 1,65,149.97" [ref=e228] [cursor=pointer]:
+            - /url: /dashboard/sold-inverters
+            - generic [ref=e229]: Sold Inverters Profit
+            - generic [ref=e231]: Rs. 1,65,149.97
+          - link "Amount to Pay (Suppliers) Rs. 3,78,000.00" [ref=e232] [cursor=pointer]:
+            - /url: /dashboard/suppliers
+            - generic [ref=e233]: Amount to Pay (Suppliers)
+            - generic [ref=e235]: Rs. 3,78,000.00
+          - link "Amount to Receive (Customers) Rs. 1,89,100.00" [ref=e236] [cursor=pointer]:
+            - /url: /dashboard/customers
+            - generic [ref=e237]: Amount to Receive (Customers)
+            - generic [ref=e239]: Rs. 1,89,100.00
+          - link "Current Bank Balance Rs. 16,12,000.00" [ref=e240] [cursor=pointer]:
+            - /url: /dashboard/accounts
+            - generic [ref=e241]: Current Bank Balance
+            - generic [ref=e243]: Rs. 16,12,000.00
+          - link "Total Assets Rs. 9,45,000.00" [ref=e244] [cursor=pointer]:
+            - /url: /dashboard/assets
+            - generic [ref=e245]: Total Assets
+            - generic [ref=e247]: Rs. 9,45,000.00
+          - generic [ref=e248]:
+            - generic [ref=e249]: Overall Profit
+            - generic [ref=e251]: Rs. 30,96,511.92
+        - generic [ref=e252]:
+          - generic [ref=e253]:
+            - heading "Purchases vs Sales" [level=3] [ref=e254]
+            - generic [ref=e256]:
+              - application "line chart with 2 data series" [ref=e257]:
+                - generic [ref=e260]:
+                  - generic "500000" [ref=e261]
+                  - generic "400000" [ref=e262]
+                  - generic "300000" [ref=e263]
+                  - generic "200000" [ref=e264]
+                  - generic "100000" [ref=e265]
+                  - generic "0" [ref=e266]
+                - generic [ref=e275]:
+                  - generic "Oct 2025" [ref=e276]
+                  - generic "Nov 2025" [ref=e277]
+                  - generic "Dec 2025" [ref=e278]
+                  - generic "Jan 2026" [ref=e279]
+                  - generic "Feb 2026" [ref=e280]
+                  - generic "Mar 2026" [ref=e281]
+                  - generic "Apr 2026" [ref=e282]
+                  - generic "May 2026" [ref=e283]
+                  - generic "Jun 2026" [ref=e284]
+                  - generic "Jul 2026" [ref=e285]
+                  - generic "Aug 2026" [ref=e286]
+                  - generic "Sep 2026" [ref=e287]
+                  - generic "Oct 2026" [ref=e288]
+              - generic [ref=e289]:
+                - button "Purchases, visible. Press Enter or Space to toggle." [ref=e290] [cursor=pointer]:
+                  - generic [ref=e292]: Purchases
+                - button "Sales, visible. Press Enter or Space to toggle." [ref=e293] [cursor=pointer]:
+                  - generic [ref=e295]: Sales
+              - tooltip [aria-hidden]: ● ●
+          - generic [ref=e296]:
+            - heading "Monthly Expenses" [level=3] [ref=e297]
+            - generic [ref=e299]:
+              - application "bar chart with 1 data series" [ref=e300]:
+                - generic [ref=e303]:
+                  - generic "200000" [ref=e304]
+                  - generic "150000" [ref=e305]
+                  - generic "100000" [ref=e306]
+                  - generic "50000" [ref=e307]
+                  - generic "0" [ref=e308]
+                - generic [ref=e309]:
+                  - generic [ref=e313]:
+                    - generic:
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "0"
+                      - generic: "78500"
+                      - generic: "154500"
+                      - generic: "0"
+                  - generic [ref=e315]:
+                    - generic "Oct 2025" [ref=e316]
+                    - generic "Nov 2025" [ref=e317]
+                    - generic "Dec 2025" [ref=e318]
+                    - generic "Jan 2026" [ref=e319]
+                    - generic "Feb 2026" [ref=e320]
+                    - generic "Mar 2026" [ref=e321]
+                    - generic "Apr 2026" [ref=e322]
+                    - generic "May 2026" [ref=e323]
+                    - generic "Jun 2026" [ref=e324]
+                    - generic "Jul 2026" [ref=e325]
+                    - generic "Aug 2026" [ref=e326]
+                    - generic "Sep 2026" [ref=e327]
+                    - generic "Oct 2026" [ref=e328]
+              - tooltip [aria-hidden]: ●

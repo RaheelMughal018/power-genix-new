@@ -116,7 +116,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         </Tabs.Panel>
 
         <Tabs.Panel id="statement">
-          <StatementTab supplierId={supplier.id} dateRange={dateRange} />
+          <StatementTab supplierId={supplier.id} supplierName={supplier.name} dateRange={dateRange} />
         </Tabs.Panel>
       </Tabs>
     </div>

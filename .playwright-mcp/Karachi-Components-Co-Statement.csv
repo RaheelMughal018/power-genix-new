@@ -1,0 +1,6 @@
+Date,Invoice #,Description,Purchase Amount,Return Amount,Amount Paid,Outstanding Balance
+,Opening Balance,,,,,0
+2026-08-03,PI-0002,-,185000,0,0,185000
+2026-08-23,SP-0002,-,0,0,100000,85000
+2026-09-02,Control PCB v3,Faulty boards returned,0,13000,0,72000
+,Total,,185000,13000,100000,72000

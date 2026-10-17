@@ -43,11 +43,11 @@ export class ItemsController {
     return await this.itemsService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Get stock summary (total value, units, count)' })
+  @ApiOperation({ summary: 'Get stock summary (total value, units, count) — honours the same filters as the list' })
   @ApiResponse({ status: 200, description: 'Summary retrieved successfully' })
   @Get('summary')
-  async getSummary() {
-    return await this.itemsService.getSummary();
+  async getSummary(@Query() query: ItemQueryDto) {
+    return await this.itemsService.getSummary(query);
   }
 
   @ApiOperation({ summary: 'Get low stock raw materials (totalQuantity < minStock)' })

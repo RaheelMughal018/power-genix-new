@@ -9,7 +9,7 @@ import { Pagination } from '@/app/_shared/components/ui/pagination/pagination';
 import { suppliersApi } from '@/app/_shared/lib/api/client';
 import { formatPKR } from '@/app/_shared/lib/utils/currency';
 import { formatDate } from '@/app/_shared/lib/utils/date';
-import { downloadPdf } from '@/app/_shared/lib/utils/download';
+import { downloadCsv, downloadPdf } from '@/app/_shared/lib/utils/download';
 import { ROUTES } from '@/app/_shared/lib/config/routes';
 import { useDebounce } from '@/app/_shared/lib/hooks/useDebounce';
 
@@ -61,7 +61,7 @@ interface RawResponse {
   };
 }
 
-interface Props { supplierId: number; dateRange: { from: string; to: string } | null; }
+interface Props { supplierId: number; supplierName: string; dateRange: { from: string; to: string } | null; }
 
 const unwrapStatement = (res: { data: unknown }): StatementResponse => {
   const outer = res.data as { data: RawResponse };
@@ -87,11 +87,13 @@ const unwrapStatement = (res: { data: unknown }): StatementResponse => {
   return { rows, footer };
 };
 
-export function StatementTab({ supplierId, dateRange }: Props) {
+export function StatementTab({ supplierId, supplierName, dateRange }: Props) {
   const router = useRouter();
   const [statement, setStatement] = useState<StatementResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
+  const fileBaseName = `${supplierName} Statement`.replace(/[\\/:*?"<>|]/g, '-');
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 400);
   const [page, setPage] = useState(1);
@@ -123,9 +125,21 @@ export function StatementTab({ supplierId, dateRange }: Props) {
       const params: Record<string, string> = {};
       if (dateRange?.from) params.from = dateRange.from;
       if (dateRange?.to) params.to = dateRange.to;
-      await downloadPdf(`/suppliers/${supplierId}/statement/pdf`, `supplier-${supplierId}-statement.pdf`, params);
+      await downloadPdf(`/suppliers/${supplierId}/statement/pdf`, `${fileBaseName}.pdf`, params);
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    setExportingCsv(true);
+    try {
+      const params: Record<string, string> = {};
+      if (dateRange?.from) params.from = dateRange.from;
+      if (dateRange?.to) params.to = dateRange.to;
+      await downloadCsv(`/suppliers/${supplierId}/statement/csv`, `${fileBaseName}.csv`, params);
+    } finally {
+      setExportingCsv(false);
     }
   };
 
@@ -158,7 +172,7 @@ export function StatementTab({ supplierId, dateRange }: Props) {
           <div className="w-full sm:w-72">
             <Input
               size="sm"
-              placeholder="Search by invoice #, amount, or notes..."
+              placeholder="Search by invoice #, amount, or description..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -173,9 +187,14 @@ export function StatementTab({ supplierId, dateRange }: Props) {
             </button>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
-          {downloading ? 'Downloading...' : 'Download PDF'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCsv} disabled={exportingCsv}>
+            {exportingCsv ? 'Exporting...' : 'Export CSV'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
+            {downloading ? 'Downloading...' : 'Download PDF'}
+          </Button>
+        </div>
       </div>
 
       {loading && (
@@ -195,6 +214,7 @@ export function StatementTab({ supplierId, dateRange }: Props) {
               <tr>
                 <th className="text-left px-4 py-3 text-(--color-text-secondary) font-medium">Date</th>
                 <th className="text-left px-4 py-3 text-(--color-text-secondary) font-medium">Invoice #</th>
+                <th className="text-left px-4 py-3 text-(--color-text-secondary) font-medium">Description</th>
                 <th className="text-right px-4 py-3 text-(--color-text-secondary) font-medium">Purchase Amount</th>
                 <th className="text-right px-4 py-3 text-(--color-text-secondary) font-medium">Return Amount</th>
                 <th className="text-right px-4 py-3 text-(--color-text-secondary) font-medium">Amount Paid</th>
@@ -208,10 +228,11 @@ export function StatementTab({ supplierId, dateRange }: Props) {
                     {dateRange?.from ? formatDate(dateRange.from) : '-'}
                   </td>
                   <td className="px-4 py-3 font-medium text-(--color-text-primary)">Opening Balance</td>
-                  <td className="px-4 py-3 text-right text-(--color-text-secondary)">-</td>
-                  <td className="px-4 py-3 text-right text-(--color-text-secondary)">-</td>
-                  <td className="px-4 py-3 text-right text-(--color-text-secondary)">-</td>
-                  <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(footer.openingBalance ?? 0)}</td>
+                  <td className="px-4 py-3 text-(--color-text-secondary)">-</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-(--color-text-secondary)">-</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-(--color-text-secondary)">-</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-(--color-text-secondary)">-</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-(--color-text-primary)">{formatPKR(footer.openingBalance ?? 0)}</td>
                 </tr>
               )}
               {rows.map((row, i) => (
@@ -225,7 +246,7 @@ export function StatementTab({ supplierId, dateRange }: Props) {
                     ) : (
                       <button
                         type="button"
-                        className="text-(--color-primary) hover:underline font-medium text-left cursor-pointer"
+                        className="text-(--color-primary) hover:underline font-medium text-left cursor-pointer whitespace-nowrap"
                         onClick={() => {
                           const route = row.type === 'invoice'
                             ? `${ROUTES.PURCHASE_INVOICES}/${row.id}`
@@ -237,21 +258,22 @@ export function StatementTab({ supplierId, dateRange }: Props) {
                       </button>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.purchaseAmount ?? 0)}</td>
-                  <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.returnAmount ?? 0)}</td>
-                  <td className="px-4 py-3 text-right text-(--color-text-primary)">{formatPKR(row.amountPaid ?? 0)}</td>
-                  <td className="px-4 py-3 text-right font-medium text-(--color-text-primary)">{formatPKR(row.outstandingBalance ?? 0)}</td>
+                  <td className="px-4 py-3 text-(--color-text-primary) max-w-xs whitespace-normal break-words">{row.notes || '-'}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-(--color-text-primary)">{formatPKR(row.purchaseAmount ?? 0)}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-(--color-text-primary)">{formatPKR(row.returnAmount ?? 0)}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-(--color-text-primary)">{formatPKR(row.amountPaid ?? 0)}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-(--color-text-primary)">{formatPKR(row.outstandingBalance ?? 0)}</td>
                 </tr>
               ))}
             </tbody>
             {footer && showTotals && (
               <tfoot className="border-t-2 border-(--color-border) bg-(--color-bg-secondary)">
                 <tr>
-                  <td colSpan={2} className="px-4 py-3 font-semibold text-(--color-text-primary)">Total</td>
-                  <td className="px-4 py-3 text-right font-semibold text-(--color-text-primary)">{formatPKR(footer.totalPurchase ?? 0)}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-(--color-text-primary)">{formatPKR(footer.totalReturns ?? 0)}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-(--color-text-primary)">{formatPKR(footer.totalPaid ?? 0)}</td>
-                  <td className="px-4 py-3 text-right font-bold text-(--color-primary-600)">{formatPKR(footer.outstanding ?? 0)}</td>
+                  <td colSpan={3} className="px-4 py-3 font-semibold text-(--color-text-primary)">Total</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-(--color-text-primary)">{formatPKR(footer.totalPurchase ?? 0)}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-(--color-text-primary)">{formatPKR(footer.totalReturns ?? 0)}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-(--color-text-primary)">{formatPKR(footer.totalPaid ?? 0)}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-(--color-primary-600)">{formatPKR(footer.outstanding ?? 0)}</td>
                 </tr>
               </tfoot>
             )}

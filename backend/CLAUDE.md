@@ -60,11 +60,13 @@ Several modules expose a `GET /:id/detail` endpoint that returns the entity + co
 
 Listing endpoints for suppliers and customers also include computed totals via subqueries. Supplier outstanding: `opening + purchases - payments - returns`. Customer outstanding: `opening + sales + repairs - payments`.
 
-Statement endpoints (`GET /suppliers/:id/statement`, `GET /customers/:id/statement`) accept optional `from`/`to` query params and return timeline rows with running balances. Each row includes `id` and `type` fields for frontend linking. Customer statements include FOC (free of charge) repair invoices as `repair_foc` type — these show the full repair amount but do not affect the running balance (Outstanding Balance column shows "-" for FOC rows). Supplier statements include return-to-supplier stock adjustments as `return` type with a "Return Amount" column — returns reduce the supplier's outstanding balance.
+Statement endpoints (`GET /suppliers/:id/statement`, `GET /customers/:id/statement`) accept optional `from`/`to` query params and return timeline rows with running balances. Each row includes `id` and `type` fields for frontend linking. Customer statements include FOC (free of charge) repair invoices as `repair_foc` type — these show the full repair amount but do not affect the running balance. Statement rows carry `notes` (customer: repair `description` for repair rows; otherwise the invoice/payment/return `notes`), also exposed as a `Description` column right after Invoice # (both customer and supplier), used by the PDF and CSV. Supplier statements include return-to-supplier stock adjustments as `return` type with a "Return Amount" column — returns reduce the supplier's outstanding balance.
 
-Statement PDF exports (`GET /suppliers/:id/statement/pdf`, `GET /customers/:id/statement/pdf`) prepend an "Opening Balance" row to the rows array using `footer['Opening Balance']` so the PDF shows the starting balance before the date-range transactions.
+Statement PDF exports (`GET /suppliers/:id/statement/pdf`, `GET /customers/:id/statement/pdf`) render `columns` as a table — a `Description` column gets double width, left alignment, and wrapped multi-line rows; tables without it render equal-width single-line columns. They prepend an "Opening Balance" row to the rows array using `footer['Opening Balance']` so the PDF shows the starting balance before the date-range transactions.
 
 History/payment listings (`GET /supplier-payments`, `GET /customer-payments`, supplier/customer purchase/sale/repair list endpoints) accept a `search` query param that matches against invoice number, party name, and notes via `ILIKE`. They also accept `fromDate`/`toDate` for date-range filtering.
+
+Statement CSV (`GET /customers/:id/statement/csv`, `GET /suppliers/:id/statement/csv`, same `from`/`to`) uses `toCsvBuffer` with the statement `columns`, an "Opening Balance" first row and a "Total" last row; amounts are raw numbers.
 
 PDF exports use `PdfService` and `@Res()` to stream the file. Current endpoints: supplier/customer statement, sale/purchase/repair invoice, and `GET /recipes/:id/pdf` (recipe with BOM items, average prices, additional expense, and total cost).
 
@@ -102,6 +104,10 @@ Items track `averagePrice` using the weighted average formula: `(oldQty × oldAv
 On deductions (sale, repair, production), only `totalQuantity` decreases — `averagePrice` is preserved. When qty reaches 0 and new stock arrives, avg resets to the new price naturally.
 
 Repair invoices accept an optional `unitPrice` per line item (defaults to item's `averagePrice` if not provided). This allows charging a markup on repair parts. Sale and purchase invoices require `unitPrice` explicitly.
+
+### Items Summary
+
+`GET /items/summary` accepts the same filters as `GET /items` (`search`, `type`, `stockStatus`, `categoryId`) via a shared private `applyFilters()` in `ItemsService`. Keep list and summary filters in that one helper.
 
 ### Search on Enum Columns
 

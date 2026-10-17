@@ -92,17 +92,15 @@ export function useItems() {
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Parameters<typeof itemsApi.getAll>[0] = {
-        page,
-        limit: LIMIT,
+      const filters = {
         search: search || undefined,
         type: filterType || undefined,
         stockStatus: filterStockStatus || undefined,
         categoryId: filterCategoryId ? Number(filterCategoryId) : undefined,
       };
       const [itemsRes, summaryRes] = await Promise.all([
-        itemsApi.getAll(params),
-        itemsApi.getSummary(),
+        itemsApi.getAll({ page, limit: LIMIT, ...filters }),
+        itemsApi.getSummary(filters),
       ]);
 
       const raw = itemsRes.data as { data?: ItemsResponse } & ItemsResponse;

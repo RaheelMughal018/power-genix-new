@@ -1,0 +1,168 @@
+- generic [ref=f4e1]:
+  - button "Open Next.js Dev Tools" [ref=f4e7] [cursor=pointer]
+  - alert [ref=f4e11]
+  - generic [ref=f4e16]:
+    - complementary [ref=f4e17]:
+      - generic [ref=f4e18]:
+        - link "Power Genix Inventory System" [ref=f4e19] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f4e23]:
+            - generic [ref=f4e24]: Power Genix
+            - generic [ref=f4e25]: Inventory System
+        - button "Switch to dark mode" [ref=f4e26] [cursor=pointer]
+      - navigation [ref=f4e29]:
+        - list [ref=f4e30]:
+          - listitem [ref=f4e31]:
+            - link "Dashboard" [ref=f4e32] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=f4e39]:
+            - link "Accounts" [ref=f4e40] [cursor=pointer]:
+              - /url: /dashboard/accounts
+          - listitem [ref=f4e44]:
+            - link "Suppliers" [ref=f4e45] [cursor=pointer]:
+              - /url: /dashboard/suppliers
+          - listitem [ref=f4e52]:
+            - link "Customers" [ref=f4e53] [cursor=pointer]:
+              - /url: /dashboard/customers
+          - listitem [ref=f4e60]:
+            - link "Items & Inventory" [ref=f4e61] [cursor=pointer]:
+              - /url: /dashboard/items
+          - listitem [ref=f4e65]:
+            - link "Categories" [ref=f4e66] [cursor=pointer]:
+              - /url: /dashboard/categories
+          - listitem [ref=f4e69]:
+            - link "Recipes" [ref=f4e70] [cursor=pointer]:
+              - /url: /dashboard/recipes
+          - listitem [ref=f4e75]:
+            - link "Production" [ref=f4e76] [cursor=pointer]:
+              - /url: /dashboard/production
+          - listitem [ref=f4e81]:
+            - link "Purchase Invoices" [ref=f4e82] [cursor=pointer]:
+              - /url: /dashboard/purchase-invoices
+          - listitem [ref=f4e87]:
+            - link "Sale Invoices" [ref=f4e88] [cursor=pointer]:
+              - /url: /dashboard/sale-invoices
+          - listitem [ref=f4e94]:
+            - link "Repair Invoices" [ref=f4e95] [cursor=pointer]:
+              - /url: /dashboard/repair-invoices
+          - listitem [ref=f4e99]:
+            - link "Sold Inverters" [ref=f4e100] [cursor=pointer]:
+              - /url: /dashboard/sold-inverters
+          - listitem [ref=f4e104]:
+            - link "Unsold Inverters" [ref=f4e105] [cursor=pointer]:
+              - /url: /dashboard/unsold-inverters
+          - listitem [ref=f4e109]:
+            - link "Supplier Payments" [ref=f4e110] [cursor=pointer]:
+              - /url: /dashboard/supplier-payments
+          - listitem [ref=f4e114]:
+            - link "Customer Payments" [ref=f4e115] [cursor=pointer]:
+              - /url: /dashboard/customer-payments
+          - listitem [ref=f4e119]:
+            - link "Stock Adjustments" [ref=f4e120] [cursor=pointer]:
+              - /url: /dashboard/stock-adjustments
+          - listitem [ref=f4e123]:
+            - link "Expense Categories" [ref=f4e124] [cursor=pointer]:
+              - /url: /dashboard/expense-categories
+          - listitem [ref=f4e127]:
+            - link "Expenses" [ref=f4e128] [cursor=pointer]:
+              - /url: /dashboard/expenses
+          - listitem [ref=f4e132]:
+            - link "Assets" [ref=f4e133] [cursor=pointer]:
+              - /url: /dashboard/assets
+          - listitem [ref=f4e138]:
+            - link "Settings" [ref=f4e139] [cursor=pointer]:
+              - /url: /dashboard/settings
+      - generic [ref=f4e144]:
+        - generic [ref=f4e145]:
+          - generic [ref=f4e146]: P
+          - generic [ref=f4e147]:
+            - paragraph [ref=f4e148]: Power
+            - paragraph [ref=f4e149]: admin@powergenix.com
+        - button "Sign out" [ref=f4e150] [cursor=pointer]
+    - main [ref=f4e152]:
+      - generic [ref=f4e153]:
+        - generic [ref=f4e154]:
+          - button "← Back" [ref=f4e155] [cursor=pointer]
+          - generic [ref=f4e156]:
+            - heading "Hall Road Electronics" [level=1] [ref=f4e157]
+            - paragraph [ref=f4e158]: 03001234567 · sales@hallroad.pk
+        - generic [ref=f4e161]:
+          - button "Today" [ref=f4e162] [cursor=pointer]
+          - button "This Week" [ref=f4e163] [cursor=pointer]
+          - button "This Month" [ref=f4e164] [cursor=pointer]
+          - button "This Year" [ref=f4e165] [cursor=pointer]
+          - button "Custom" [ref=f4e166] [cursor=pointer]
+        - generic [ref=f4e167]:
+          - generic [ref=f4e168]:
+            - generic [ref=f4e169]: Opening Balance
+            - generic [ref=f4e171]: Rs. 50,000.00
+          - generic [ref=f4e172]:
+            - generic [ref=f4e173]: Total Purchase Amount
+            - generic [ref=f4e175]: Rs. 3,74,000.00
+          - generic [ref=f4e176]:
+            - generic [ref=f4e177]: Total Paid Amount
+            - generic [ref=f4e179]: Rs. 2,00,000.00
+          - generic [ref=f4e180]:
+            - generic [ref=f4e181]: Outstanding Balance
+            - generic [ref=f4e183]: Rs. 2,24,000.00
+          - generic [ref=f4e184]:
+            - generic [ref=f4e185]: Current Balance
+            - generic [ref=f4e187]: Rs. 4,24,000.00
+        - generic [ref=f4e188]:
+          - tablist [ref=f4e189]:
+            - tab "Purchase History" [ref=f4e190] [cursor=pointer]
+            - tab "Payment History" [ref=f4e191] [cursor=pointer]
+            - tab "Statement" [active] [selected] [ref=f4e192] [cursor=pointer]
+          - tabpanel [ref=f4e193]:
+            - generic [ref=f4e194]:
+              - generic [ref=f4e195]:
+                - 'textbox "Search by invoice #, amount, or notes..." [ref=f4e200]'
+                - button "Download PDF" [ref=f4e201] [cursor=pointer]
+              - table [ref=f4e203]:
+                - rowgroup [ref=f4e204]:
+                  - row [ref=f4e205]:
+                    - columnheader "Date" [ref=f4e206]
+                    - 'columnheader "Invoice #" [ref=f4e207]'
+                    - columnheader "Purchase Amount" [ref=f4e208]
+                    - columnheader "Return Amount" [ref=f4e209]
+                    - columnheader "Amount Paid" [ref=f4e210]
+                    - columnheader "Outstanding Balance" [ref=f4e211]
+                - rowgroup [ref=f4e212]:
+                  - row [ref=f4e213]:
+                    - cell "-" [ref=f4e214]
+                    - cell "Opening Balance" [ref=f4e215]
+                    - cell "-" [ref=f4e216]
+                    - cell "-" [ref=f4e217]
+                    - cell "-" [ref=f4e218]
+                    - cell "Rs. 50,000.00" [ref=f4e219]
+                  - row [ref=f4e220]:
+                    - cell "29/07/2026" [ref=f4e221]
+                    - cell [ref=f4e222]:
+                      - button "PI-0001" [ref=f4e223] [cursor=pointer]
+                    - cell "Rs. 2,50,000.00" [ref=f4e224]
+                    - cell "Rs. 0.00" [ref=f4e225]
+                    - cell "Rs. 0.00" [ref=f4e226]
+                    - cell "Rs. 3,00,000.00" [ref=f4e227]
+                  - row [ref=f4e228]:
+                    - cell "18/08/2026" [ref=f4e229]
+                    - cell [ref=f4e230]:
+                      - button "SP-0001" [ref=f4e231] [cursor=pointer]
+                    - cell "Rs. 0.00" [ref=f4e232]
+                    - cell "Rs. 0.00" [ref=f4e233]
+                    - cell "Rs. 2,00,000.00" [ref=f4e234]
+                    - cell "Rs. 1,00,000.00" [ref=f4e235]
+                  - row [ref=f4e236]:
+                    - cell "17/09/2026" [ref=f4e237]
+                    - cell [ref=f4e238]:
+                      - button "PI-0005" [ref=f4e239] [cursor=pointer]
+                    - cell "Rs. 1,24,000.00" [ref=f4e240]
+                    - cell "Rs. 0.00" [ref=f4e241]
+                    - cell "Rs. 0.00" [ref=f4e242]
+                    - cell "Rs. 2,24,000.00" [ref=f4e243]
+                - rowgroup [ref=f4e244]:
+                  - row [ref=f4e245]:
+                    - cell "Total" [ref=f4e246]
+                    - cell "Rs. 3,74,000.00" [ref=f4e247]
+                    - cell "Rs. 0.00" [ref=f4e248]
+                    - cell "Rs. 2,00,000.00" [ref=f4e249]
+                    - cell "Rs. 2,24,000.00" [ref=f4e250]

@@ -66,6 +66,10 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 
 **HistoryFilters:** `app/_shared/components/ui/historyFilters/historyFilters.tsx` — shared search + date-range filter used on all customer/supplier history tabs (purchase, sale, repair, payment) and statement tabs. Wires to backend `search`/`fromDate`/`toDate` query params; statement tabs use it for client-side filtering.
 
+**Statement Description column (customer + supplier):** Shows each row's `notes` (repair description, or sale/payment notes), "-" when empty. Amount and invoice cells are `whitespace-nowrap`; description wraps.
+
+**Statement exports (customer + supplier):** "Export CSV" (`downloadCsv` → `/{customers|suppliers}/:id/statement/csv`) and "Download PDF" sit side by side; both send the active date range only (not the search text). Downloaded files are named `<Party Name> Statement.pdf` / `.csv` (party name passed as a prop to the statement tab; characters invalid in file names become `-`).
+
 **Statement tab pagination:** Customer and supplier statement tabs paginate rows client-side (statement endpoint returns the full timeline; pagination is purely display).
 
 **Layout:** Sidebar is fixed (h-screen), only main content area scrolls (`overflow-y-auto`, `overflow-x-hidden`).
@@ -96,6 +100,8 @@ Each module typically has: list page, create page, `[id]/` detail page, `[id]/ed
 **Stock Adjustment Return-to-Supplier:** Form requires `unitPrice` when reason is `return_to_supplier` (backend validates). Listing shows a "Deducted From Supplier" column rendering `qty × unitPrice` (from row `deductionAmount`) for return rows, "—" otherwise.
 
 **Recipe PDF Export:** Recipe detail page has a "Download PDF" button calling `GET /recipes/:id/pdf` via `downloadFile()` (`recipe-<id>.pdf`).
+
+**Items summary cards:** `useItems` sends the same filters (search, type, stockStatus, categoryId) to `itemsApi.getSummary(filters)` as to the list, so the cards reflect the filtered set.
 
 **Empty States:** All list pages must pass `emptyTitle`, `emptyDescription`, and `emptyAction` props to `DataTable` for when data is empty.
 

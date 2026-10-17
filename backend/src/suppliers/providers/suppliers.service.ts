@@ -308,13 +308,14 @@ export class SuppliersService {
       return {
         supplier: { id: supplier.id, name: supplier.name },
         dateRange: from || to ? { from: from ?? '', to: to ?? '' } : undefined,
-        columns: ['Date', 'Invoice #', 'Purchase Amount', 'Return Amount', 'Amount Paid', 'Outstanding Balance'],
+        columns: ['Date', 'Invoice #', 'Description', 'Purchase Amount', 'Return Amount', 'Amount Paid', 'Outstanding Balance'],
         rows: rows.map((r) => ({
           id: r.id,
           type: r.type,
           notes: r.notes,
           'Date': r.date,
           'Invoice #': r.invoiceNumber,
+          'Description': r.notes || '-',
           'Purchase Amount': r.purchaseAmount,
           'Return Amount': r.returnAmount,
           'Amount Paid': r.amountPaid,

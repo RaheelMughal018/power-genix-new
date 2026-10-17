@@ -296,13 +296,14 @@ export class CustomersService {
       return {
         customer: { id: customer.id, name: customer.name },
         dateRange: from || to ? { from: from ?? '', to: to ?? '' } : undefined,
-        columns: ['Date', 'Invoice #', 'Sale Amount', 'Repair Amount', 'Amount Received', 'Outstanding Balance'],
+        columns: ['Date', 'Invoice #', 'Description', 'Sale Amount', 'Repair Amount', 'Amount Received', 'Outstanding Balance'],
         rows: rows.map((r) => ({
           id: r.id,
           type: r.type,
           notes: r.notes,
           'Date': r.date,
           'Invoice #': r.invoiceNumber,
+          'Description': r.notes || '-',
           'Sale Amount': r.saleAmount,
           'Repair Amount': r.repairAmount,
           'Amount Received': r.amountReceived,

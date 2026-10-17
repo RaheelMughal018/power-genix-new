@@ -124,7 +124,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         </Tabs.Panel>
 
         <Tabs.Panel id="statement">
-          <CustomerStatementTab customerId={customer.id} dateRange={dateRange} />
+          <CustomerStatementTab customerId={customer.id} customerName={customer.name} dateRange={dateRange} />
         </Tabs.Panel>
       </Tabs>
     </div>

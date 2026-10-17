@@ -3,7 +3,7 @@ import { handleError } from '@/common/error-handlers/error.handler';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { Item } from '../entities/item.entity';
 import { CreateItemDto } from '../dtos/create-item.dto';
 import { UpdateItemDto } from '../dtos/update-item.dto';
@@ -30,23 +30,7 @@ export class ItemsService {
         .leftJoinAndSelect('item.createdBy', 'createdBy')
         .orderBy('item.name', 'ASC');
 
-      if (query.search) {
-        qb.andWhere('item.name ILIKE :search', { search: `%${query.search}%` });
-      }
-
-      if (query.type) {
-        qb.andWhere('item.type = :type', { type: query.type });
-      }
-
-      if (query.categoryId) {
-        qb.andWhere('item.categoryId = :categoryId', { categoryId: query.categoryId });
-      }
-
-      if (query.stockStatus === 'in_stock') {
-        qb.andWhere('item.totalQuantity > 0');
-      } else if (query.stockStatus === 'out_of_stock') {
-        qb.andWhere('item.totalQuantity = 0');
-      }
+      this.applyFilters(qb, query);
 
       const [data, totalItems] = await qb.skip(skip).take(limit).getManyAndCount();
 
@@ -89,11 +73,15 @@ export class ItemsService {
     }
   }
 
-  async getSummary() {
+  async getSummary(query: ItemQueryDto) {
     try {
-      const result = await this.itemsRepository
+      const qb = this.itemsRepository
         .createQueryBuilder('item')
-        .where('item.deletedAt IS NULL')
+        .where('item.deletedAt IS NULL');
+
+      this.applyFilters(qb, query);
+
+      const result = await qb
         .select('COUNT(item.id)', 'totalItems')
         .addSelect('COALESCE(SUM(item."totalQuantity"), 0)', 'totalUnits')
         .addSelect(
@@ -109,6 +97,26 @@ export class ItemsService {
       };
     } catch (error) {
       handleError(error);
+    }
+  }
+
+  private applyFilters(qb: SelectQueryBuilder<Item>, query: ItemQueryDto) {
+    if (query.search) {
+      qb.andWhere('item.name ILIKE :search', { search: `%${query.search}%` });
+    }
+
+    if (query.type) {
+      qb.andWhere('item.type = :type', { type: query.type });
+    }
+
+    if (query.categoryId) {
+      qb.andWhere('item.categoryId = :categoryId', { categoryId: query.categoryId });
+    }
+
+    if (query.stockStatus === 'in_stock') {
+      qb.andWhere('item.totalQuantity > 0');
+    } else if (query.stockStatus === 'out_of_stock') {
+      qb.andWhere('item.totalQuantity = 0');
     }
   }
 

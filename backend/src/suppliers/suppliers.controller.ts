@@ -1,6 +1,7 @@
 import { ActiveUser } from '@/common/decorators/active-user.decorator';
 import type { ActiveUserData } from '@/common/interfaces/active-user-data.interface';
 import { PdfService } from '@/common/pdf/pdf.service';
+import { toCsvBuffer } from '@/common/helpers/csv.helper';
 import {
   Body,
   Controller,
@@ -87,6 +88,7 @@ export class SuppliersController {
     const openingRow: Record<string, string | number> = {
       'Date': statement.dateRange?.from || '-',
       'Invoice #': 'Opening Balance',
+      'Description': '-',
       'Purchase Amount': '-',
       'Return Amount': '-',
       'Amount Paid': '-',
@@ -110,6 +112,38 @@ export class SuppliersController {
       'Content-Length': buffer.length,
     });
     res.send(buffer);
+  }
+
+  @ApiOperation({ summary: 'Download supplier statement as CSV' })
+  @ApiResponse({ status: 200, description: 'CSV file' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiQuery({ name: 'from', required: false, type: String })
+  @ApiQuery({ name: 'to', required: false, type: String })
+  @Get(':id/statement/csv')
+  async downloadStatementCsv(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const statement = (await this.suppliersService.getStatement(id, from, to))!;
+    const openingRow = {
+      'Date': statement.dateRange?.from || '',
+      'Invoice #': 'Opening Balance',
+      'Outstanding Balance': statement.footer['Opening Balance'] ?? 0,
+    };
+    const totalRow = {
+      'Invoice #': 'Total',
+      'Purchase Amount': statement.footer['Total Purchase'],
+      'Return Amount': statement.footer['Total Returns'],
+      'Amount Paid': statement.footer['Total Paid'],
+      'Outstanding Balance': statement.footer['Outstanding'],
+    };
+    const csv = toCsvBuffer(statement.columns, [openingRow, ...statement.rows, totalRow]);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="supplier-statement-${statement.supplier.name}.csv"`);
+    res.send(csv);
   }
 
   @ApiOperation({ summary: 'Get a single supplier by ID' })
