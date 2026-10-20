@@ -107,7 +107,7 @@ Repair invoices accept an optional `unitPrice` per line item (defaults to item's
 
 ### Items Summary
 
-`GET /items/summary` accepts the same filters as `GET /items` (`search`, `type`, `stockStatus`, `categoryId`) via a shared private `applyFilters()` in `ItemsService`. Keep list and summary filters in that one helper.
+`GET /items/summary` and `GET /items/pdf` accept the same filters as `GET /items` (`search`, `type`, `stockStatus`, `categoryId`) via a shared private `applyFilters()` in `ItemsService`. Keep list, summary, and PDF filters in that one helper. The frontend Download PDF button sends the page's active filters.
 
 ### Search on Enum Columns
 

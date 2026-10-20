@@ -8,7 +8,6 @@ import { FilterBar } from '@/app/_shared/components/ui/filterBar/filterBar';
 import { StatusBadge } from '@/app/_shared/components/ui/statusBadge/statusBadge';
 import { ItemForm } from '@/app/_shared/components/forms/itemForm/itemForm';
 import { formatPKR, formatNumber } from '@/app/_shared/lib/utils/currency';
-import { downloadPdf } from '@/app/_shared/lib/utils/download';
 import { useItems, type Item } from './useItems';
 
 const ITEM_TYPE_LABELS: Record<string, string> = {
@@ -51,6 +50,7 @@ export default function ItemsPage() {
     handleDeleteClick,
     handleDeleteConfirm,
     handleExportCsv,
+    handleExportPdf,
     fetchItems,
     setIsCreateModalOpen,
     closeEditModal,
@@ -159,7 +159,7 @@ export default function ItemsPage() {
         onExportCsv={handleExportCsv}
         actions={
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => downloadPdf('/items/pdf', 'items.pdf')}>
+            <Button size="sm" variant="outline" onClick={handleExportPdf}>
               Download PDF
             </Button>
             <Button size="sm" variant="primary" onClick={() => setIsCreateModalOpen(true)}>

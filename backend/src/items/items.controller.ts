@@ -68,13 +68,14 @@ export class ItemsController {
   }
 
   @ApiOperation({ summary: 'Export items as PDF' })
-  @ApiResponse({ status: 200, description: 'PDF export of all items' })
+  @ApiResponse({ status: 200, description: 'PDF export of items matching the list filters' })
   @Get('pdf')
   async exportPdf(
+    @Query() query: ItemQueryDto,
     @ActiveUser() activeUser: ActiveUserData,
     @Res() res: Response,
   ) {
-    const allItems = await this.itemsService.findAllForPdf();
+    const allItems = await this.itemsService.findAllForPdf(query);
     const pdfItems = allItems.map((item) => ({
       name: item.name,
       category: item.category?.name ?? '',

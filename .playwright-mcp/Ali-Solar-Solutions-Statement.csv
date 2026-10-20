@@ -1,6 +1,0 @@
-Date,Invoice #,Description,Sale Amount,Repair Amount,Amount Received,Outstanding Balance
-,Opening Balance,,,,,75000
-2026-09-12,SI-0001,2 inverters for Gulberg project,190000,0,0,265000
-2026-09-17,CP-0001,Bank transfer,0,0,150000,115000
-2026-10-02,RI-0001,"Fan replaced, display flicker fixed",0,3700,0,118700
-,Total,,190000,3700,150000,118700

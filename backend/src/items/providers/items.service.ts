@@ -209,11 +209,15 @@ export class ItemsService {
     }
   }
 
-  async findAllForPdf() {
-    return this.itemsRepository.find({
-      relations: ['category'],
-      order: { name: 'ASC' },
-    });
+  async findAllForPdf(query: ItemQueryDto) {
+    const qb = this.itemsRepository
+      .createQueryBuilder('item')
+      .leftJoinAndSelect('item.category', 'category')
+      .orderBy('item.name', 'ASC');
+
+    this.applyFilters(qb, query);
+
+    return qb.getMany();
   }
 
   async exportCsv() {

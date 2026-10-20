@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { itemsApi, categoriesApi } from '@/app/_shared/lib/api/client';
 import { useToast } from '@/app/_shared/components/ui/toast/toast';
-import { downloadCsv } from '@/app/_shared/lib/utils/download';
+import { downloadCsv, downloadPdf } from '@/app/_shared/lib/utils/download';
 
 interface ItemCategory {
   id: number;
@@ -177,6 +177,19 @@ export function useItems() {
     }
   };
 
+  const handleExportPdf = async () => {
+    const params: Record<string, string> = {};
+    if (search) params.search = search;
+    if (filterType) params.type = filterType;
+    if (filterStockStatus) params.stockStatus = filterStockStatus;
+    if (filterCategoryId) params.categoryId = filterCategoryId;
+    try {
+      await downloadPdf('/items/pdf', 'items.pdf', params);
+    } catch {
+      addToast({ title: 'Error', description: 'Failed to export PDF', variant: 'error' });
+    }
+  };
+
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedItem(null);
@@ -211,6 +224,7 @@ export function useItems() {
     handleDeleteClick,
     handleDeleteConfirm,
     handleExportCsv,
+    handleExportPdf,
     fetchItems,
     setIsCreateModalOpen,
     closeEditModal,
